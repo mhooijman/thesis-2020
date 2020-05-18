@@ -1,2 +1,4 @@
 DeepSpeech/
 venv/
+deepspeech-0.6.1*
+*__pycache__*
