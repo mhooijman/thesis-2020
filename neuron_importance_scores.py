@@ -61,7 +61,7 @@ def inter_intgrads(input_value, reference_value, grads_and_activation_func,
     grouped_per_layer = {}
     for input_i in range(n+1):
         for layer_i in range(len(inter_tensor)):
-            layer_name = f"layer_{layer_i}"
+            layer_name = 'layer_{}'.format(layer_i)
             if layer_name not in grouped_per_layer: grouped_per_layer[layer_name] = {'activations': [], 'gradients': []}
             grouped_per_layer[layer_name]['activations'].append(activations_at_intermediate_values[input_i][layer_i])
             grouped_per_layer[layer_name]['gradients'].append(gradients_at_intermediate_values[input_i][layer_i])
