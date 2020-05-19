@@ -15,6 +15,7 @@ Summary of installation (make use of git-lfs).
 git clone https://github.com/mhooijman/DeepSpeech.git ./DeepSpeech
 cd DeepSpeech && git checkout v0.6.1 && pip install -r requirements.txt
 pip install $(python ./util/taskcluster.py --decoder)
+sudo apt-get install sox
 
 python -m pip install tensorflow-gpu==1.14.0  # optional
 ```
@@ -38,7 +39,6 @@ python DeepSpeech/DeepSpeech.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint \
 
 Download Librivox data (python file handles already exist check). From the root folder execute:
 ```
-sudo apt-get install sox
 python utils/import_data.py ./data
 rm -rf ./data/LibriSpeech/test-clean
 ```
