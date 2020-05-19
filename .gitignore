@@ -3,3 +3,4 @@ venv/
 deepspeech-0.6.1*
 *__pycache__*
 data/
+results/
