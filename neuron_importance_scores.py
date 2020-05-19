@@ -220,7 +220,7 @@ def group_importance_scores(input_dir, output_dir):
 def main(_):
     input_dir = './data/LibriSpeech/test-clean-wav'
     output_dir = './results'
-    riemann_steps = 1
+    riemann_steps = 20
 
     initialize_globals()
     tfv1.reset_default_graph()
