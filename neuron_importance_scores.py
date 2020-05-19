@@ -124,7 +124,7 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
 
         # Only process files that are not yet available in results directory
         create_dir_if_not_exists('{}/imp_scores'.format(output_dir))  # Check if directory exists
-        files_done = [f.split('~')[1][:-4] for f in os.listdir(output_dir) if f.endswith('.npy')]
+        files_done = [f.split('~')[1][:-4] for f in os.listdir('{}/imp_scores'.format(output_dir)) if f.endswith('.npy')]
         input_files = [f for f in os.listdir(input_dir) if f.endswith('.wav') and f[:-4] not in files_done]
 
         print('{} audio files found. Start computing neuron importance...'.format(len(input_files)))
