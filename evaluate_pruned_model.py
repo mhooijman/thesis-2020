@@ -21,13 +21,11 @@ sys.path.append('./DeepSpeech')
 from util.config import Config, initialize_globals
 from util.flags import create_flags, FLAGS
 from DeepSpeech import try_loading, create_model
-from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
+from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.logging import log_error, log_progress, create_progressbar
-
-
-
+from evaluate import sparse_tensor_value_to_texts, sparse_tuple_to_texts
 
 
 def prune_matrices(input_array, prune_percentage=0, verbose=True):
@@ -234,7 +232,7 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
 def main(_):
     initialize_globals()
 
-    evaluation_csv = './data/LibriSpeech/librivox-test-clean.csv'
+    evaluation_csv = './data/librivox-test-clean.csv'
     results_file = './results/evaluation_output.txt'
     scores_file = './results/final_imp_scores.npy'
 
