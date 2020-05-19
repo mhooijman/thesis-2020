@@ -50,6 +50,8 @@ Scores for each input are saved to ./results/imp_scores, these results are combi
 ## Evaluation with pruning
 Run the code for evaluation with pruning (standard at .05, .1, .15, .2, .25, .3 pruning ratio).
 ```
+python evaluate_pruned_model.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ./DeepSpeech/data/lm/lm.binary --lm_trie_path ./DeepSpeech/data/lm/trie
+```
 
 
 
