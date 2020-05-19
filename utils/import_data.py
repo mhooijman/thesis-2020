@@ -16,11 +16,11 @@ import progressbar
 import subprocess
 import tarfile
 import unicodedata
+from tensorflow.python.platform import gfile
 
-sys.path.append('../DeepSpeech')
+sys.path.append('./DeepSpeech')
 from sox import Transformer
 from util.downloader import maybe_download
-from tensorflow.python.platform import gfile
 
 SAMPLE_RATE = 16000
 
