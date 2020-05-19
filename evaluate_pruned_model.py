@@ -39,15 +39,15 @@ def prune_matrices(input_array, prune_percentage=0, verbose=True):
       n_neurons_total *= n
 
     n_neurons_prune = int(n_neurons_total * prune_percentage)
-    if verbose: print(f'Neurons to prune: {n_neurons_prune}')
+    if verbose: print('Neurons to prune: {}'.format(n_neurons_prune))
 
     scores_1d = input_array.flatten()
     scores_1d = np.abs(scores_1d)
     prune_indexes = scores_1d.argsort()[0:n_neurons_prune]
 
     if verbose:
-        print(f'Number of neurons to be pruned already zero: \
-        {np.sum(scores_1d[prune_indexes] == 0)} of {n_neurons_prune}.')
+        print('Number of neurons to be pruned already zero: \
+        {} of {}.'.format(np.sum(scores_1d[prune_indexes] == 0), n_neurons_prune))
 
     # Set neurons to be pruned to 0 and the rest to 1
     scores_1d[prune_indexes] = 0
@@ -63,7 +63,7 @@ def prune_matrices(input_array, prune_percentage=0, verbose=True):
     scores_muted = np.reshape(scores_1d, input_array.shape)
 
     for i, layer in enumerate(scores_muted):
-        print(f'Neurons to be pruned in layer_{i+1}: {len(layer)-len(layer[layer>0])}.')
+        print('Neurons to be pruned in layer_{}: {}.'.format(i+1, len(layer)-len(layer[layer>0])))
 
     return [layer for layer in scores_muted]
 
@@ -203,10 +203,10 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
             # Take only the first report_count items
             report_samples = itertools.islice(samples, FLAGS.report_count)
             
-            result_string = f'''Results for evaluating model with pruning percentage of {prune_percentage*100}%:
-            Test on {dataset} - WER: {wer}, CER: {cer}, loss: {mean_loss}
+            result_string = '''Results for evaluating model with pruning percentage of {}%:
+            Test on {} - WER: {}, CER: {}, loss: {}
 
-            '''
+            '''.format(prune_percentage*100, dataset, wer, cer, mean_loss)
             write_to_file(result_file, result_string, 'a+')
 
             print('Test on %s - WER: %f, CER: %f, loss: %f' %
