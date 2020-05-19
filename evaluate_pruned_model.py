@@ -226,3 +226,13 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
             print('Testing model on {}'.format(csv))
             samples.extend(run_test(init_op, dataset=csv))
         return samples
+
+
+def main(_):
+    initialize_globals()
+    for pruning_percentage in [.05, .1, .15, .2, .25, .3]:
+        tfv1.reset_default_graph()
+        evaluate_with_pruning('./data/librivox-test-clean.csv', 
+                                  create_model, try_loading, pruning_percentage)
+
+absl.app.run(main)
