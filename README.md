@@ -36,7 +36,8 @@ python DeepSpeech/DeepSpeech.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint \
 
 Download Librivox data (python file handles already exist check). From the root folder execute:
 ```
-python util/import_data.py ./data
+python utils/import_data.py ./data
+rm -rf ./data/LibriSpeech/test-clean
 ```
 
 
