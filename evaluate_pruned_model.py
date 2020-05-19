@@ -15,7 +15,7 @@ from six.moves import zip
 import itertools
 from multiprocessing import cpu_count
 
-from util import write_to_file
+from utils import write_to_file
 
 sys.path.append('./DeepSpeech')
 from util.config import Config, initialize_globals
@@ -70,7 +70,10 @@ def prune_matrices(input_array, prune_percentage=0, verbose=True):
     return [layer for layer in scores_muted]
 
 
-def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage=0, scores_file, result_file='results/evaluation_output.txt'):
+def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage, scores_file, result_file):
+    '''Code originaly comes from the DeepSpeech repository (./DeepSpeech/evaluate.py).
+    The code is adapted for evaluation on pruned versions of the DeepSpeech model.
+    '''
     if FLAGS.lm_binary_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
@@ -230,9 +233,16 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
 
 def main(_):
     initialize_globals()
+
+    evaluation_csv = './data/LibriSpeech/librivox-test-clean.csv'
+    results_file = './results/evaluation_output.txt'
+    scores_file = './results/final_imp_scores.npy'
+
     for pruning_percentage in [.05, .1, .15, .2, .25, .3]:
         tfv1.reset_default_graph()
-        evaluate_with_pruning('./data/librivox-test-clean.csv', 
-                                  create_model, try_loading, pruning_percentage)
+        evaluate_with_pruning(evaluation_csv, create_model, try_loading,
+            pruning_percentage, scores_file=scores_file, result_file=results_file)
 
-absl.app.run(main)
+if __name__ == "__main__":
+    create_flags()
+    absl.app.run(main)
