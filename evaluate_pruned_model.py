@@ -236,7 +236,9 @@ def main(_):
     results_file = './results/evaluation_output.txt'
     scores_file = './results/final_imp_scores.npy'
 
-    for pruning_percentage in [.1, .2, .3]:
+    # for pruning_percentage in [.1, .2, .3]:
+    for pruning_percentage in [.01]:
+
         tfv1.reset_default_graph()
         evaluate_with_pruning(evaluation_csv, create_model, try_loading,
             pruning_percentage, scores_file=scores_file, result_file=results_file)
