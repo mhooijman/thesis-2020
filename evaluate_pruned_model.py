@@ -28,7 +28,7 @@ from util.logging import log_error, log_progress, create_progressbar
 from evaluate import sparse_tensor_value_to_texts, sparse_tuple_to_texts
 
 
-def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
+def prune_matrices(input_array, prune_percentage=0, random=False, skip_lstm=False, verbose=True):
     '''Returns a matrix with ones and zeros for each layers
     Supports input to be a numpy array. The layers of the DeepSpeech
     model have an equal number of neurons.'''
@@ -53,20 +53,16 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     else:
         print('Creating score-based pruning masks...')
         scores_1d = np.abs(scores_1d)
-        prune_indexes = scores_1d.argsort()[:-n_neurons_prune]
-
-        if verbose:
-            print('Number of neurons to be pruned already zero: \
-                {} of {}.'.format(len(scores_1d[prune_indexes] == 0), n_neurons_prune))
+        prune_indexes = scores_1d.argsort()[-n_neurons_prune:]
 
         # Set neurons to be pruned to 0 and the rest to 1
         scores_1d[prune_indexes] = 0
         scores_1d[scores_1d != 0] = 1
 
     try:
-      assert n_neurons_total-n_neurons_prune == np.sum(scores_1d)
+        assert n_neurons_total-n_neurons_prune == np.sum(scores_1d)
     except:
-      print('WARNING: neurons to keep and true values in scores are not equal.',
+        print('WARNING: neurons to keep and true values in scores are not equal.',
                       n_neurons_total-n_neurons_prune, len(scores_1d[scores_1d>0]))
 
     # Reshape 1d array to its original shape
@@ -248,7 +244,7 @@ def main(_):
     results_file = './results/evaluation_output.txt'
     scores_file = './results/final_imp_scores.npy'
 
-    for prune_settings in [(.1, False)]:
+    for prune_settings in [(0, False), (.05, False), (.05, True), (.1, False), (.1, True), (.15, False), (.15, True)]:
         tfv1.reset_default_graph()
         evaluate_with_pruning(evaluation_csv, create_model, try_loading,
             prune_settings[0], random=prune_settings[1], scores_file=scores_file, result_file=results_file)
