@@ -53,7 +53,7 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     else:
         print('Creating score-based pruning masks...')
         scores_1d = np.abs(scores_1d)
-        prune_indexes = scores_1d.argsort()[0:n_neurons_prune]
+        prune_indexes = scores_1d.argsort()[:-n_neurons_prune]
 
         if verbose:
             print('Number of neurons to be pruned already zero: \
@@ -64,9 +64,9 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
         scores_1d[scores_1d != 0] = 1
 
     try:
-      assert n_neurons_total-n_neurons_prune == len(scores_1d[scores_1d>0])
+      assert n_neurons_total-n_neurons_prune == np.sum(scores_1d)
     except:
-      print('WARNING: neurons to keep and non-zero values in scores are not equal.',
+      print('WARNING: neurons to keep and true values in scores are not equal.',
                       n_neurons_total-n_neurons_prune, len(scores_1d[scores_1d>0]))
 
     # Reshape 1d array to its original shape
@@ -221,7 +221,7 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
             result_string = '''Results for evaluating model with pruning percentage of {}% and {} pruning:
             Test on {} - WER: {}, CER: {}, loss: {}
 
-            '''.format(prune_percentage*100, prunint_type, dataset, wer, cer, mean_loss)
+            '''.format(prune_percentage*100, pruning_type, dataset, wer, cer, mean_loss)
             write_to_file(result_file, result_string, 'a+')
             
             for sample in report_samples:
@@ -248,7 +248,7 @@ def main(_):
     results_file = './results/evaluation_output.txt'
     scores_file = './results/final_imp_scores.npy'
 
-    for prune_settings in [(.1, True), (.2, True), (.3, True)]:
+    for prune_settings in [(.1, False)]:
         tfv1.reset_default_graph()
         evaluate_with_pruning(evaluation_csv, create_model, try_loading,
             prune_settings[0], random=prune_settings[1], scores_file=scores_file, result_file=results_file)
