@@ -28,7 +28,7 @@ from util.logging import log_error, log_progress, create_progressbar
 from evaluate import sparse_tensor_value_to_texts, sparse_tuple_to_texts
 
 
-def prune_matrices(input_array, prune_percentage=0, verbose=True):
+def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     '''Returns a matrix with ones and zeros for each layers
     Supports input to be a numpy array. The layers of the DeepSpeech
     model have an equal number of neurons.'''
@@ -40,18 +40,28 @@ def prune_matrices(input_array, prune_percentage=0, verbose=True):
 
     n_neurons_prune = int(n_neurons_total * prune_percentage)
     if verbose: print('Neurons to prune: {}'.format(n_neurons_prune))
-
+    
     scores_1d = input_array.flatten()
-    scores_1d = np.abs(scores_1d)
-    prune_indexes = scores_1d.argsort()[0:n_neurons_prune]
 
-    if verbose:
-        print('Number of neurons to be pruned already zero: \
-        {} of {}.'.format(np.sum(scores_1d[prune_indexes] == 0), n_neurons_prune))
+    if random:
+        print('Creating random pruning masks...')
+        mask = np.ones_like(scores_1d)
+        mask[:n_neurons_prune] = 0
+        np.random.shuffle(mask)
+        scores_1d = mask
+        random_masks = []
+    else:
+        print('Creating score-based pruning masks...')
+        scores_1d = np.abs(scores_1d)
+        prune_indexes = scores_1d.argsort()[0:n_neurons_prune]
 
-    # Set neurons to be pruned to 0 and the rest to 1
-    scores_1d[prune_indexes] = 0
-    scores_1d[scores_1d != 0] = 1
+        if verbose:
+            print('Number of neurons to be pruned already zero: \
+                {} of {}.'.format(len(scores_1d[prune_indexes] == 0), n_neurons_prune))
+
+        # Set neurons to be pruned to 0 and the rest to 1
+        scores_1d[prune_indexes] = 0
+        scores_1d[scores_1d != 0] = 1
 
     try:
       assert n_neurons_total-n_neurons_prune == len(scores_1d[scores_1d>0])
@@ -68,7 +78,7 @@ def prune_matrices(input_array, prune_percentage=0, verbose=True):
     return [layer for layer in scores_muted]
 
 
-def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage, scores_file, result_file):
+def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage, random, scores_file, result_file):
     '''Code originaly comes from the DeepSpeech repository (./DeepSpeech/evaluate.py).
     The code is adapted for evaluation on pruned versions of the DeepSpeech model.
     '''
@@ -134,7 +144,7 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
         if not prune_percentage: print('No pruning done.')
         else:
             scores_per_layer = np.load(scores_file)
-            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage)
+            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=random)
 
             n_layers_to_prune = len(layer_masks)
             i=0
@@ -203,15 +213,17 @@ def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage
             # Take only the first report_count items
             report_samples = itertools.islice(samples, FLAGS.report_count)
             
-            result_string = '''Results for evaluating model with pruning percentage of {}%:
-            Test on {} - WER: {}, CER: {}, loss: {}
-
-            '''.format(prune_percentage*100, dataset, wer, cer, mean_loss)
-            write_to_file(result_file, result_string, 'a+')
-
             print('Test on %s - WER: %f, CER: %f, loss: %f' %
                   (dataset, wer, cer, mean_loss))
             print('-' * 80)
+
+            pruning_type = 'score-based' if not random else 'random'
+            result_string = '''Results for evaluating model with pruning percentage of {}% and {} pruning:
+            Test on {} - WER: {}, CER: {}, loss: {}
+
+            '''.format(prune_percentage*100, prunint_type, dataset, wer, cer, mean_loss)
+            write_to_file(result_file, result_string, 'a+')
+            
             for sample in report_samples:
                 print('WER: %f, CER: %f, loss: %f' %
                       (sample.wer, sample.cer, sample.loss))
@@ -236,12 +248,10 @@ def main(_):
     results_file = './results/evaluation_output.txt'
     scores_file = './results/final_imp_scores.npy'
 
-    # for pruning_percentage in [.1, .2, .3]:
-    for pruning_percentage in [.01]:
-
+    for prune_settings in [(.1, True), (.2, True), (.3, True)]:
         tfv1.reset_default_graph()
         evaluate_with_pruning(evaluation_csv, create_model, try_loading,
-            pruning_percentage, scores_file=scores_file, result_file=results_file)
+            prune_settings[0], random=prune_settings[1], scores_file=scores_file, result_file=results_file)
 
 if __name__ == "__main__":
     create_flags()
