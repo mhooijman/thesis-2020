@@ -124,8 +124,8 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
         # Only process files that are not yet available in results directory
-        create_dir_if_not_exists('{}/imp_scores'.format(output_dir))  # Check if directory exists
-        files_done = [f[:-4] for f in os.listdir('{}/imp_scores'.format(output_dir)) if f.endswith('.npy')]
+        create_dir_if_not_exists('{}/imp_scores_per_timestep'.format(output_dir))  # Check if directory exists
+        files_done = [f[:-4] for f in os.listdir('{}/imp_scores_per_timestep'.format(output_dir)) if f.endswith('.npy')]
         input_files = [f for f in os.listdir(input_dir) if f.endswith('.wav') and f[:-4] not in files_done]
 
         print('{} audio files found. Start computing neuron importance...'.format(len(input_files)))
@@ -191,7 +191,7 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             
             scores = np.array(scores).squeeze()
             # Save neuron importance scores to file
-            save_to_path_scores = '{}/imp_scores/{}.npy'.format(output_dir, file_name[:-4])
+            save_to_path_scores = '{}/imp_scores_per_timestep/{}.npy'.format(output_dir, file_name[:-4])
             write_numpy_to_file(save_to_path_scores, scores)
             print('Layer scores for {} are saved to: {}'.format(file_name, save_to_path_scores))
             
@@ -202,56 +202,6 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
 
     return True
 
-def group_importance_scores(input_dir, output_dir):
-    
-    file_list = os.listdir(input_dir)
-
-    i = 0
-    batch = 1
-    imp_scores = []
-    for f in file_list:
-        i += 1
-        if not f.endswith('.npy'): continue
-        
-        imp_scores.append(np.load('{}/{}'.format(input_dir, f)))
-
-        if i == 100:
-            mean_imp_scores = np.array([np.mean(s, axis=1) for s in imp_scores])
-            scores_per_layer = np.mean(mean_imp_scores, axis=0)  # Average over timesteps
-            write_numpy_to_file('{}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch), scores_per_layer)  # Average over inputs
-            print('Saved to: {}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch))
-            i = 0
-            batch += 1
-            imp_scores = []
-
-    if imp_scores:
-        mean_imp_scores = np.array([np.mean(s, axis=1) for s in imp_scores])
-        scores_per_layer = np.mean(mean_imp_scores, axis=0)
-        write_numpy_to_file('{}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch), scores_per_layer)
-        print('Saved to: {}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch))
-
-    create_dir_if_not_exists('{}/grouped_imp_scores/'.format(output_dir))  # Check if directory exists
-    grouped_files_list = os.listdir('{}/grouped_imp_scores/'.format(output_dir))
-    imp_scores = [np.load('{}/grouped_imp_scores/{}'.format(output_dir, f)) for f in grouped_files_list]
-    final_scores = np.mean(mean_imp_scores, axis=0)
-
-    write_numpy_to_file('{}/final_imp_scores_mean.npy'.format(output_dir), final_scores)
-
-    ### TODO: L2 normalized of mean score per layer.
-
-    if imp_scores:
-        mean_imp_scores = np.array([np.mean(s, axis=1) for s in imp_scores])
-        scores_per_layer = np.mean(mean_imp_scores, axis=0)
-        write_numpy_to_file('{}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch), scores_per_layer)
-        print('Saved to: {}/grouped_imp_scores/imp_scores_{}.npy'.format(output_dir, batch))
-
-    create_dir_if_not_exists('{}/grouped_imp_scores/'.format(output_dir))  # Check if directory exists
-    grouped_files_list = os.listdir('{}/grouped_imp_scores/'.format(output_dir))
-    imp_scores = [np.load('{}/grouped_imp_scores/{}'.format(output_dir, f)) for f in grouped_files_list]
-    final_scores = np.mean(mean_imp_scores, axis=0)
-
-    write_numpy_to_file('{}/final_imp_scores_mean.npy'.format(output_dir), final_scores)
-
 def main(_):
     input_dir = './data/LibriSpeech/test-clean-wav'
     output_dir = './results'
@@ -260,7 +210,6 @@ def main(_):
     initialize_globals()
     tfv1.reset_default_graph()
     neuron_importance(input_dir=input_dir, output_dir=output_dir, riemann_steps=riemann_steps)
-    # group_importance_scores(input_dir='{}/imp_scores'.format(output_dir), output_dir=output_dir)
 
 if __name__ == "__main__":
     create_flags()
