@@ -165,7 +165,7 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             scores = []
             for i in range(features.shape[1]):
 
-                if i / 100 in range(100):
+                if i / 10 in range(100):
                     print('... processing {}th timestep...'.format(i))
 
                 gradients_per_layer_at_timestep = []
