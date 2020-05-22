@@ -48,25 +48,28 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
         mask = np.ones_like(scores_1d)
         mask[:n_neurons_prune] = 0
         np.random.shuffle(mask)
-        scores_1d = mask
-        random_masks = []
     else:
         print('Creating score-based pruning masks...')
         scores_1d = np.abs(scores_1d)
-        prune_indexes = scores_1d.argsort()[-n_neurons_prune:]
+        keep_indexes = scores_1d.argsort()[-(n_neurons_total-n_neurons_prune):]
+        # keep_indexes = scores_1d.argsort()[-1000:]
+        # print(scores_1d[keep_indexes])
+        
+        mask = np.zeros_like(scores_1d)
+        mask[keep_indexes] = 1
 
         # Set neurons to be pruned to 0 and the rest to 1
-        scores_1d[prune_indexes] = 0
-        scores_1d[scores_1d != 0] = 1
+        # scores_1d[prune_indexes] = 0
+        # scores_1d[scores_1d != 0] = 1
 
     try:
-        assert n_neurons_total-n_neurons_prune == np.sum(scores_1d)
+        assert n_neurons_total-n_neurons_prune == np.sum(mask)
     except:
         print('WARNING: neurons to keep and true values in scores are not equal.',
-                      n_neurons_total-n_neurons_prune, len(scores_1d[scores_1d>0]))
+                      n_neurons_total-n_neurons_prune, len(mask[mask>0]))
 
     # Reshape 1d array to its original shape
-    scores_muted = np.reshape(scores_1d, input_array.shape)
+    scores_muted = np.reshape(mask, input_array.shape)
 
     for i, layer in enumerate(scores_muted):
         print('Neurons to be pruned in layer_{}: {}.'.format(i+1, len(layer)-len(layer[layer>0])))
@@ -140,6 +143,9 @@ def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, resu
 
         if not prune_percentage: print('No pruning done.')
         else:
+            # prune_percentage = prune_percentage*100
+            print('-'*80)
+            print('pruning with {}%...'.format(prune_percentage))
             scores_per_layer = np.load(scores_file)
             layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=random)
 
@@ -148,19 +154,35 @@ def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, resu
             for index, v in enumerate(tf.trainable_variables()):
                 if 'weights' not in v.name and v.name != 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0': continue
                 if(i >= n_layers_to_prune): break  # if i < total_ops, it is not yet the last layer
-                
-                # make mask into the shape of the weights                
                 if v.name == 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0':
-                    # Shape of LSTM weights: [(2*neurons), (4*neurons)]
-                    cell_template = np.ones((2, 4))
-                    mask = np.repeat(layer_masks[i], v.shape[0]//2, axis=0)
-                    mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]//2])
-                    mask = np.swapaxes(mask, 0, 1)
-                    mask = np.kron(mask, cell_template)
+                    i+=1
+                    continue
+                # make mask into the shape of the weights                
+                # if v.name == 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0':
+                #     # Shape of LSTM weights: [(2*neurons), (4*neurons)]
+                #     cell_template = np.ones((2, 4))
+                #     mask = np.repeat(layer_masks[i], v.shape[0]//2, axis=0)
+                #     mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]//2])
+                #     mask = np.swapaxes(mask, 0, 1)
+                #     mask = np.kron(mask, cell_template)
                 else:
+                    idx = layer_masks[i] == 1
+                    # print(np.sum(layer_masks[i][idx]))
                     mask = np.repeat(layer_masks[i], v.shape[0], axis=0)
                     mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]])
                     mask = np.swapaxes(mask, 0, 1)
+                    # print(np.sum(mask[idx]))
+                # mask = np.ones(v.shape)
+                # #computing L2-norm of weight matrix
+                # unit_norm = np.linalg.norm(session.run(v),axis=0)
+                # #calculate threshold based on sparsity percentage
+                # threshold = np.percentile(unit_norm, prune_percentage)
+                # ids = unit_norm<threshold
+                # #setting the columns to zero
+                # mask[:,ids]=0
+
+                # print('{} neurons to be pruned...'.format(len(ids)-np.sum(ids)))
+
 
                 # apply mask to weights
                 session.run(v.assign(tf.multiply(v, mask)))

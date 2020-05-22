@@ -173,7 +173,7 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
                     n_same_targets += 1
                     continue
                 
-                print('Computing {} to {}'.format(i-n_same_targets, i))
+                print('Computing {} to {} (of {})'.format(i-n_same_targets, i, features.shape[1]))
                 gradients_per_layer = []
                 
                 output_tensor_timesteps = tf.reduce_sum(output_tensor[i-n_same_targets:i,target_idx], axis=0)
