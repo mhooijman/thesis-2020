@@ -163,31 +163,36 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             # To compute conductance we need:
             # - Gradients of the predicted output value with resprect to the intermediate layers
             scores = []
+            prev_target_idx = target_per_sequence_unit[0]
+            n_same_targets = 0
+
             for i in range(features.shape[1]):
 
-                if i / 10 in range(100):
-                    print('... processing {}th timestep...'.format(i))
-
-                gradients_per_layer_at_timestep = []
-
-                input = features[:,i,:,:]  # input for current timestep
-                input = input.reshape(1, *input.shape)  # reshape to the expexted input shape
                 target_idx = target_per_sequence_unit[i]  # target for current timestep
+                if prev_target_idx == target_idx:
+                    n_same_targets += 1
+                    continue
                 
+                print('Computing {} to {}'.format(i-n_same_targets, i))
+                gradients_per_layer = []
                 for inter_tensor in intermediate_layers:  # get gradients for all layers for current timestep
-                    gradients_per_layer_at_timestep.append(tf.gradients(output_tensor[:,target_idx], inter_tensor)[0])
+                    gradients_per_layer.append(tf.gradients(output_tensor[:,target_idx], inter_tensor)[0])
 
+                input = features[:,i-n_same_targets:i,:,:]  # input for current timestep
                 feed_dict = {
                     inputs['input']: input,
-                    inputs['input_lengths']: [1],
+                    inputs['input_lengths']: [n_same_targets],
                     inputs['previous_state_c']: previous_state_c,
                     inputs['previous_state_h']: previous_state_h,
                 }
 
                 scores_for_timestep, _ = inter_intgrads(input, riemann_steps, feed_dict, inputs['input'],
-                                                    intermediate_layers, gradients_per_layer_at_timestep, session)
+                                                    intermediate_layers, gradients_per_layer, session)
 
                 scores.append(scores_for_timestep)
+
+                n_same_targets = 0
+                
             
             scores = np.array(scores).squeeze()
             # Save neuron importance scores to file
