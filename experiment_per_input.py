@@ -54,9 +54,8 @@ def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         importance_normalized = []
 
         # shape of importange: n_steps, n_layers, n_neurons (?, 5, 2048)
-        for i in range(importance.shape[1]):
-            steps = importance[:,i,:]
-            sum = np.sum(np.abs(steps), axis=0)
+        for layer in importance:
+            sum = np.sum(np.abs(layer), axis=0)
             importance_normalized.append(sum)
 
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
