@@ -74,10 +74,11 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     return [layer for layer in scores_muted]
 
 
-def evaluate_with_pruning(test_csvs, create_model, try_loading, prune_percentage, random, scores_file, result_file):
+def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, result_file):
     '''Code originaly comes from the DeepSpeech repository (./DeepSpeech/evaluate.py).
     The code is adapted for evaluation on pruned versions of the DeepSpeech model.
     '''
+    tfv1.reset_default_graph()
     if FLAGS.lm_binary_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
@@ -245,7 +246,6 @@ def main(_):
     scores_file = './results/final_imp_scores.npy'
 
     for prune_settings in [(0, False), (.05, False), (.05, True), (.1, False), (.1, True), (.15, False), (.15, True)]:
-        tfv1.reset_default_graph()
         evaluate_with_pruning(evaluation_csv, create_model, try_loading,
             prune_settings[0], random=prune_settings[1], scores_file=scores_file, result_file=results_file)
 
