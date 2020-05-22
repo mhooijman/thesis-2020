@@ -46,7 +46,7 @@ def write_csv(path, data):
 
 def main(_):
     initialize_globals()
-    file_into_path = './data/librivox-test-clean-real.csv'
+    file_into_path = './data/librivox-test-clean.csv'
     file_info = get_file_info(file_into_path)
 
     scores_dir = './results/imp_scores'
