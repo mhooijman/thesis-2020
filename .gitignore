@@ -6,3 +6,4 @@ data/
 results/
 nohup.out
 output.log
+.DS_Store
