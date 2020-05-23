@@ -4,7 +4,7 @@ import csv
 import absl.app
 import pandas as pd
 import os
-from utils import create_dir_if_not_exists, write_numpy_to_file
+from utils import create_dir_if_not_exists, write_numpy_to_file, write_to_file
 
 import sys
 sys.path.append('./DeepSpeech')
@@ -113,7 +113,9 @@ def print_evaluation_report(data):
                 cer.append(i.cer)
                 wer.append(i.wer)
                 loss.append(i.loss)
-        print('Results for {}: cer: {}, wer: {}, loss: {}.'.format(key, sum(cer)/len(cer), sum(wer)/len(wer), sum(loss)/len(loss)))
+        res_str = 'Results for {}: cer: {}, wer: {}, loss: {}.'.format(key, sum(cer)/len(cer), sum(wer)/len(wer), sum(loss)/len(loss))
+        write_to_file('./results/evaluation_per_sample.txt')
+        print(res_str)
 
 
 def get_file_info(path):
