@@ -38,9 +38,19 @@ def do_experiment(scores_dir, csv_path, file_info, results_file):
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
         write_numpy_to_file(normalized_file, np.array(importance_normalized))
 
-        for percentage in [.1, .2, .3, .4]:
-            evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=percentage,
-                    random=False, scores_file=normalized_file, result_file=results_file)
+        tests = [.05, .1, .15, .2, .3, .5]
+        results = {'{}_percent_score'.format(i*100): [] for i in tests}
+        for p in tests:
+            results['{}_percent_score'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
+                    random=False, scores_file=normalized_file, result_file=results_file, verbose=False))
+        print_evaluation_report(results)
+
+        tests = [.05, .1, .15, .2, .3, .5]
+        results = {'{}_percent_rand'.format(i*100): [] for i in tests}
+        for p in tests:
+            results['{}_percent_rand'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
+                    random=True, scores_file=normalized_file, result_file=results_file, verbose=False))
+        print_evaluation_report(results)
 
 def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         
@@ -61,9 +71,24 @@ def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
         write_numpy_to_file(normalized_file, np.array(importance_normalized))
 
-        for percentage in [.1, .2, .3, .4]:
-            evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=percentage,
-                    random=False, scores_file=normalized_file, result_file=results_file)
+        tests = [.05, .1, .15, .2, .3,]
+        results = {'{}_percent'.format(i*100): [] for i in tests}
+        for p in tests:
+            results['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
+                    random=False, scores_file=normalized_file, result_file=results_file, verbose=False))
+        print_evaluation_report(results)
+
+def print_evaluation_report(data):
+    for key, items in data.items():
+        cer = []
+        wer = []
+        loss = []
+        for item in items:
+            for i in item:
+                cer.append(i.cer)
+                wer.append(i.wer)
+                loss.append(i.loss)
+        print('Results for {}: cer: {}, wer: {}, loss: {}.'.format(key, sum(cer)/len(cer), sum(wer)/len(wer), sum(loss)/len(loss)))
 
 
 def get_file_info(path):
