@@ -114,7 +114,7 @@ def print_evaluation_report(data):
                 wer.append(i.wer)
                 loss.append(i.loss)
         res_str = 'Results for {}: cer: {}, wer: {}, loss: {}.'.format(key, sum(cer)/len(cer), sum(wer)/len(wer), sum(loss)/len(loss))
-        write_to_file('./results/evaluation_per_sample.txt')
+        write_to_file('./results/evaluation_per_sample.txt', res_str+"\n")
         print(res_str)
 
 
