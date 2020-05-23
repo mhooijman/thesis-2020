@@ -51,15 +51,12 @@ def do_experiment(scores_dir, csv_path, file_info, results_file):
                     random=True, scores_file=normalized_file, result_file=results_file, verbose=False))
 
         if n/50 in range(30):
-            print('Results at sample {} for score based evaluation:'.format(n))
-            print_evaluation_report(results_score)
-            print('\nResults at sample {} for random evaluation:'.format(n))
-            print_evaluation_report(results_random)
 
-    print('Final results at sample {} for score based evaluation:'.format(n))
-    print_evaluation_report(results_score)
-    print('\nFinal results at sample {} for random evaluation:'.format(n))
-    print_evaluation_report(results_random)
+            print_evaluation_report(results_score, 'Results at sample {} for score based evaluation:'.format(n))
+            print_evaluation_report(results_random, 'Results at sample {} for random evaluation:'.format(n))
+
+    print_evaluation_report(results_score, 'Final results for score based evaluation:')
+    print_evaluation_report(results_random, 'Final results for random evaluation:')
 
 def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         
@@ -80,30 +77,29 @@ def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
         write_numpy_to_file(normalized_file, np.array(importance_normalized))
 
-        tests = [.05, .1, .15, .2, .25, .3, .5]
+        tests = [.05]#, .1, .15, .2, .25, .3, .5]
         results_score = {'{}_percent'.format(i*100): [] for i in tests}
         for p in tests:
             results_score['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
                     random=False, scores_file=normalized_file, result_file=results_file, verbose=False))
 
-        tests = [.05, .1, .15, .2, .25, .3, .5]
+        tests = [.05]#, .1, .15, .2, .25, .3, .5]
         results_random = {'{}_percent'.format(i*100): [] for i in tests}
         for p in tests:
             results_random['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
                     random=True, scores_file=normalized_file, result_file=results_file, verbose=False))
 
         if n/50 in range(30):
-            print('Results at sample {} for score based evaluation:'.format(n))
-            print_evaluation_report(results_score)
-            print('\nResults at sample {} for random evaluation:'.format(n))
-            print_evaluation_report(results_random)
 
-    print('Final results at sample {} for score based evaluation:'.format(n))
-    print_evaluation_report(results_score)
-    print('\nFinal results at sample {} for random evaluation:'.format(n))
-    print_evaluation_report(results_random)
+            print_evaluation_report(results_score, 'Results at sample {} for score based evaluation:'.format(n))
+            print_evaluation_report(results_random, 'Results at sample {} for random evaluation:'.format(n))
 
-def print_evaluation_report(data):
+    print_evaluation_report(results_score, 'Final results for score based evaluation:')
+    print_evaluation_report(results_random, 'Final results for random evaluation:')
+
+def print_evaluation_report(data, title):
+    print(title+"\n")
+    write_to_file('./results/evaluation_per_sample.txt', title+"\n", 'a+')
     for key, items in data.items():
         cer = []
         wer = []
@@ -117,6 +113,7 @@ def print_evaluation_report(data):
         write_to_file('./results/evaluation_per_sample.txt', res_str+"\n", 'a+')
         print(res_str)
 
+    write_to_file('./results/evaluation_per_sample.txt', "\n", 'a+')
 
 def get_file_info(path):
     return {i['wav_filename'].split('/')[-1][:-4]: i for i in pd.read_csv(path).T.to_dict().values()}
