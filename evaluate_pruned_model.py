@@ -42,6 +42,7 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     if verbose: print('Neurons to prune: {}'.format(n_neurons_prune))
     
     # rm lstm layer
+    print(input_array.shape)
     input_array = np.delete(input_array, 4, 0)
     n_neurons_total = 1
     for n in input_array.shape:
