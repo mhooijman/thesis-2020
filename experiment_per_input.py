@@ -77,13 +77,13 @@ def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
         write_numpy_to_file(normalized_file, np.array(importance_normalized))
 
-        tests = [.05, .1, .15, .2, .25, .3, .5]
+        tests = [.05, .1, .15, .2]
         results_score = {'{}_percent'.format(i*100): [] for i in tests}
         for p in tests:
             results_score['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
                     random=False, scores_file=normalized_file, result_file=results_file, verbose=False))
 
-        tests = [.05, .1, .15, .2, .25, .3, .5]
+        tests = [.05, .1, .15, .2]
         results_random = {'{}_percent'.format(i*100): [] for i in tests}
         for p in tests:
             results_random['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
