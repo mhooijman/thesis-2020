@@ -80,16 +80,16 @@ def main(_):
     file_into_path = './data/librivox-test-clean.csv'
     file_info = get_file_info(file_into_path)
 
-    # scores_dir = './results/imp_scores_per_timestep'
-    # csv_path = './results/imp_scores_per_timestep/csv'
-    # results_file = './results/evaluation_output.txt'
-    # do_experiment(scores_dir, csv_path, file_info, results_file)
-
-
-    scores_dir = './results/imp_scores'
-    csv_path = './results/imp_scores/csv'
+    scores_dir = './results/imp_scores_per_timestep'
+    csv_path = './results/imp_scores_per_timestep/csv'
     results_file = './results/evaluation_output.txt'
-    do_experiment_2(scores_dir, csv_path, file_info, results_file)
+    do_experiment(scores_dir, csv_path, file_info, results_file)
+
+
+    # scores_dir = './results/imp_scores'
+    # csv_path = './results/imp_scores/csv'
+    # results_file = './results/evaluation_output.txt'
+    # do_experiment_2(scores_dir, csv_path, file_info, results_file)
 
 if __name__ == "__main__":
     create_flags()
