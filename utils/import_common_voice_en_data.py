@@ -3,8 +3,8 @@ from sox import Transformer
 
 
 data_dir = './data'
-all_data = open(data_dir + '/CommonVoice/EN/validated.tsv', 'r').read().split('\n')
-train_data = open(data_dir + '/CommonVoice/EN/train.tsv', 'r').read().split('\n')
+all_data = open(data_dir + '/CommonVoice/validated.tsv', 'r').read().split('\n')
+train_data = open(data_dir + '/CommonVoice/train.tsv', 'r').read().split('\n')
 keys = all_data.pop(0).split('\t')
 items = [dict(zip(keys, line.split('\t'))) for line in all_data]
 train_items = [dict(zip(keys, line.split('\t'))) for line in train_data]
@@ -42,8 +42,8 @@ json.dump(selection, open('pertubed_input_sets.json', 'w+'), indent=4)
 
 
 # Preprocess audio files
-source_dir = data_dir + '/CommonVoice/EN/clips'
-target_dir = data_dir + '/CommonVoice/EN/pertubed_sets'
+source_dir = data_dir + '/CommonVoice/clips'
+target_dir = data_dir + '/CommonVoice/pertubed_sets'
 
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
