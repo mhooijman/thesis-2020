@@ -12,8 +12,8 @@ from util.flags import create_flags
 from util.config import initialize_globals
 
 
-def do_experiment(scores_dir, csv_path, file_info, results_file):
-    tests = [.05, .1, .15, .2]
+def do_experiment(scores_dir, csv_path, file_info, results_file, tests):
+    '''Evaluate using single scores per input sample'''
     results_score = {'{}_percent'.format(i*100): [] for i in tests}
     results_random = {'{}_percent'.format(i*100): [] for i in tests}
     for n, filename in enumerate([f for f in os.listdir(scores_dir) if f.endswith('.npy')]):
@@ -23,23 +23,19 @@ def do_experiment(scores_dir, csv_path, file_info, results_file):
         write_csv(csv_file_path, info)
 
         importance = np.load('{}/{}'.format(scores_dir, filename))
-        importance_normalized = []
-        print(importance.shape)
+        importance_combined = []
         for i in range(importance.shape[1]):
-            
             layer = importance[:,i]
             steps = []
             for frame in layer:
                 for step in frame:
                     steps.append(step)
             steps = np.array(steps)
-            print(steps.shape)
             sum = np.sum(np.abs(steps), axis=0)
-            # l2 = sum / np.sqrt(np.sum(sum**2))
-            importance_normalized.append(sum)
+            importance_combined.append(sum)
 
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
-        write_numpy_to_file(normalized_file, np.array(importance_normalized))
+        write_numpy_to_file(normalized_file, np.array(importance_combined))
 
         for p in tests:
             results_score['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
@@ -58,7 +54,7 @@ def do_experiment(scores_dir, csv_path, file_info, results_file):
     print_evaluation_report(results_random, 'Final results for random evaluation:')
 
 def do_experiment_2(scores_dir, csv_path, file_info, results_file):
-        
+    '''Evaluate using time-step-based scores'''
     tests = [.05, .1, .15, .2]
     results_score = {'{}_percent'.format(i*100): [] for i in tests}
     results_random = {'{}_percent'.format(i*100): [] for i in tests}
@@ -70,15 +66,15 @@ def do_experiment_2(scores_dir, csv_path, file_info, results_file):
         write_csv(csv_file_path, info)
 
         importance = np.load('{}/{}'.format(scores_dir, filename))
-        importance_normalized = []
+        importance_combined = []
 
         # shape of importange: n_steps, n_layers, n_neurons (?, 5, 2048)
         for layer in importance:
             sum = np.sum(np.abs(layer), axis=0)
-            importance_normalized.append(sum)
+            importance_combined.append(sum)
 
         normalized_file = '{}/normalized/{}'.format(scores_dir, filename)
-        write_numpy_to_file(normalized_file, np.array(importance_normalized))
+        write_numpy_to_file(normalized_file, np.array(importance_combined))
 
         for p in tests:
             results_score['{}_percent'.format(p*100)].append(evaluate_with_pruning(test_csvs=csv_file_path, prune_percentage=p,
@@ -126,11 +122,12 @@ def main(_):
     initialize_globals()
     file_into_path = './data/librivox-test-clean.csv'
     file_info = get_file_info(file_into_path)
+    tests = [.05, .1, .15, .2]
 
     scores_dir = './results/imp_scores_per_timestep'
     csv_path = './results/imp_scores_per_timestep/csv'
     results_file = './results/evaluation_output.txt'
-    do_experiment(scores_dir, csv_path, file_info, results_file)
+    do_experiment(scores_dir, csv_path, file_info, results_file, tests)
 
     # scores_dir = './results/imp_scores_avg_inputs'
     # csv_path = './results/imp_scores_avg_inputs/csv'
