@@ -59,7 +59,7 @@ def activations_pertubed_sets(input_dir, output_dir):
             for item in set['set_items']:
                 file_name = item['path'][:-4]
                 if file_name in files_done: continue
-                print('current file: '.format(file_name))
+                print('current file: {}'.format(file_name))
 
                 input_file_path = '{}/{}.wav'.format(input_dir, file_name)
 
@@ -79,7 +79,7 @@ def activations_pertubed_sets(input_dir, output_dir):
                 intermediate_activations = session.run(intermediate_layers, feed_dict=feed_dict)
 
                 # Save activations of actual input
-                save_to_path_activations = '{}/activations/{}/{}.npy'.format(output_dir, set['set_id'], file_name[:-4])
+                save_to_path_activations = '{}/activations/{}/{}.npy'.format(output_dir, set['set_id'], file_name)
                 write_numpy_to_file(save_to_path_activations, np.array(intermediate_activations))
                 print('Activations for {} are saved to: {}'.format(file_name, save_to_path_activations))
 
