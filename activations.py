@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import os
+import json
 from datetime import datetime 
 
 LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
@@ -28,7 +29,7 @@ def activations_pertubed_sets(input_dir, output_dir):
     intermediate_layer_names = ['layer_1', 'layer_2', 'layer_3', 'rnn_output', 'layer_4', 'layer_5']
     intermediate_layers = [l for n,l in layers.items() if n in intermediate_layer_names]
     
-    pertubed_sets = json.open('data/pertubed_input_sets_balanced.json')
+    pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
 
     with tfv1.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
