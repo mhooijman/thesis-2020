@@ -53,8 +53,8 @@ def activations_pertubed_sets(input_dir, output_dir):
             print('Processing set {}, {} items...'.format(set['set_id'], set['set_length']))
 
             # Only process files that are not yet available in results directory
-            create_dir_if_not_exists('{}/activations/{}'.format(output_dir, set_name))  # Check if directory exists
-            files_done = [f[:-4] for f in os.listdir('{}/activations/{}'.format(output_dir, set_name)) if f.endswith('.npy')]
+            create_dir_if_not_exists('{}/activations/{}'.format(output_dir, set['set_id']))  # Check if directory exists
+            files_done = [f[:-4] for f in os.listdir('{}/activations/{}'.format(output_dir, set['set_id'])) if f.endswith('.npy')]
 
             for item in set['set_items']:
                 file_name = item['path'][-4]
@@ -79,7 +79,7 @@ def activations_pertubed_sets(input_dir, output_dir):
                 intermediate_activations = session.run(intermediate_layers, feed_dict=feed_dict)
 
                 # Save activations of actual input
-                save_to_path_activations = '{}/activations/{}/{}.npy'.format(output_dir, set_name, file_name[:-4])
+                save_to_path_activations = '{}/activations/{}/{}.npy'.format(output_dir, set['set_id'], file_name[:-4])
                 write_numpy_to_file(save_to_path_activations, np.array(intermediate_activations))
                 print('Activations for {} are saved to: {}'.format(file_name, save_to_path_activations))
 
