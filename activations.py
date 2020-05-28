@@ -90,7 +90,7 @@ def main(_):
 
     initialize_globals()
     tfv1.reset_default_graph()
-    if activations(input_dir=input_dir, output_dir=output_dir): print('Done.')
+    if activations_pertubed_sets(input_dir=input_dir, output_dir=output_dir): print('Done.')
 
 if __name__ == "__main__":
     create_flags()
