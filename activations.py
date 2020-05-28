@@ -57,7 +57,7 @@ def activations_pertubed_sets(input_dir, output_dir):
             files_done = [f[:-4] for f in os.listdir('{}/activations/{}'.format(output_dir, set['set_id'])) if f.endswith('.npy')]
 
             for item in set['set_items']:
-                file_name = item['path'][-4]
+                file_name = item['path'][:-4]
                 if file_name in files_done: continue
                 print('current file: '.format(file_name))
 
