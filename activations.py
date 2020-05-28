@@ -58,7 +58,10 @@ def activations_pertubed_sets(input_dir, output_dir):
 
             for item in set['set_items']:
                 file_name = item['path'][:-4]
-                if file_name in files_done: continue
+                print(file_name)
+                if file_name in files_done: 
+                    print('Skipped.')
+                    continue
                 print('current file: {}'.format(file_name))
 
                 input_file_path = '{}/{}.wav'.format(input_dir, file_name)
