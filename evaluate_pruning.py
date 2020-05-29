@@ -31,14 +31,15 @@ def evaluate(scores_path, prune_percent, evaluate_files):
         'wer': float(wer), 'cer': float(cer), 'mean_loss': float(mean_loss)
     }
 
-    # Evaluate random
-    wer, cer, mean_loss = evaluate_with_pruning(test_csvs=csv_file_path, 
-                        prune_percentage=prune_percent, random=True, scores_file=scores_path, 
-                                                result_file=None, verbose=False)
+    if prune_percent:
+        # Evaluate random
+        wer, cer, mean_loss = evaluate_with_pruning(test_csvs=csv_file_path, 
+                            prune_percentage=prune_percent, random=True, scores_file=scores_path, 
+                                                    result_file=None, verbose=False)
 
-    evaluation_result['random'] = {
-        'wer': float(wer), 'cer': float(cer), 'mean_loss': float(mean_loss)
-    }  
+        evaluation_result['random'] = {
+            'wer': float(wer), 'cer': float(cer), 'mean_loss': float(mean_loss)
+        }  
     
     return evaluation_result 
 
