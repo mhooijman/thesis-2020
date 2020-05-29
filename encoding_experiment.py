@@ -57,12 +57,12 @@ def main():
     # Encoding experiment of gender on full model activations
     activations_dir = './results/activations'
     do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, sencente_data=speaker_data)
+                    activations_dir=activations_dir, speakers_data=speaker_data)
 
     # Encoding experiment of gender on 0.1 pruned model activations
     activations_dir = './results/activations/pruned-10'
     do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, sencente_data=speaker_data)
+                    activations_dir=activations_dir, speakers_data=speaker_data)
 
 if __name__ == "__main__":
     main()
