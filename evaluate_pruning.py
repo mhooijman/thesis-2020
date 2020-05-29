@@ -18,7 +18,7 @@ def evaluate(scores_path, prune_percent, evaluate_files):
     
     # Write evaluate files as temporary csv file
     csv_file_path = './data/tmp_evaluation_info.csv'
-    write_csv(csv_file_path, list(evaluate_files.values()))
+    write_csv(csv_file_path, evaluate_files)
 
     evaluation_result = {}
 
