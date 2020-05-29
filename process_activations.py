@@ -21,7 +21,7 @@ for set in os.listdir('./results/activations/')[0:-40]:
         print(e)
         pass
 
-    if averaged_set_activations is not None:
+    if averaged_set_activations is None:
         print('Processing set {}'.format(set))
         l2_set_activations = []
         activation_files = [f for f in os.listdir(set_path) if f.endswith('.npy')]
