@@ -1,6 +1,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import shap
 import sys
 import os
 from datetime import datetime 
@@ -100,7 +101,6 @@ def inter_intgrads(input_value, riemann_steps, feed_dict, input_tensor, inter_te
 
 def neuron_importance(input_dir, output_dir, riemann_steps):
     '''Computes neuron importance scores for the given input_dir'''
-
     with tfv1.Session(config=Config.session_config) as session:
         inputs, outputs, layers = create_inference_graph(batch_size=1, n_steps=-1)
         layers = {k:l for k, l in layers.items() if k not in ['rnn_output_state', 'raw_logits']}
@@ -119,19 +119,18 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             sys.exit(1)
 
         importance_scores = {}
-        n = riemann_steps  # Number of steps in Riemann sum approximation of integration
 
         # Default states for LSTM cell
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
         # Only process files that are not yet available in results directory
-        create_dir_if_not_exists('{}/imp_scores_per_timestep'.format(output_dir))  # Check if directory exists
-        files_done = [f[:-4] for f in os.listdir('{}/imp_scores_per_timestep'.format(output_dir)) if f.endswith('.npy')]
+        create_dir_if_not_exists('{}/shap_scores_per_timestep'.format(output_dir))  # Check if directory exists
+        files_done = [f[:-4] for f in os.listdir('{}/shap_scores_per_timestep'.format(output_dir)) if f.endswith('.npy')]
         input_files = [f for f in os.listdir(input_dir) if f.endswith('.wav') and f[:-4] not in files_done]
 
         print('{} audio files found. Start computing neuron importance...'.format(len(input_files)))
-        
+
         # Calculate neuron scores for each input file
         for input_count, file_name in enumerate(input_files):
             print(file_name)
@@ -145,6 +144,12 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             features = create_overlapping_windows(features).eval(session=session)
             features_len = features_len.eval(session=session)
 
+
+            # Layer stuff
+            intermediate_layers = [item for key,item in layers.items() if key not in ['input_reshaped', 'layer_6']]        
+            input_tensor = layers['input_reshaped']
+            output_tensor = layers['layer_6']
+
             feed_dict = {
                 inputs['input']: features,
                 inputs['input_lengths']: features_len,
@@ -152,22 +157,19 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
                 inputs['previous_state_h']: previous_state_h,
             }
 
-            logits = outputs['outputs'].eval(feed_dict=feed_dict, session=session)
-            logits = np.squeeze(logits)
+            activations = session.run([outputs['outputs']]+intermediate_layers, feed_dict=feed_dict)
 
+            # logits = outputs['outputs'].eval(feed_dict=feed_dict, session=session)
+            logits = np.squeeze(activations[0])
             target_per_sequence_unit = np.argmax(logits, axis=1)  # holds the predicted output index per sequence unit
-
-            # Layer stuff
-            intermediate_layers = [item for key,item in layers.items() if key not in ['input_reshaped', 'layer_6']]        
-            input_tensor = layers['input_reshaped']
-            output_tensor = layers['layer_6']
+            logits_inter_layers = activations[1:]
 
             # To compute conductance we need:
             # - Gradients of the predicted output value with resprect to the intermediate layers
             scores = []
             # prev_target_idx = target_per_sequence_unit[0]
             # n_same_targets = 0
-
+            
             for i in range(features.shape[1]):
 
                 target_idx = target_per_sequence_unit[i]  # target for current timestep
@@ -179,11 +181,10 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
                 gradients_per_layer = []
                 
                 output_tensor_timesteps = output_tensor[i,target_idx]
-                for inter_tensor in intermediate_layers:  # get gradients for intermediate layers for current timestep
-                    gradients_per_layer.append(tf.gradients(output_tensor_timesteps, inter_tensor)[0])
-
-                input = features[:,i,:,:]  # input for current timestep 
-                input = input.reshape(1, *input.shape)  # fit shape to models expectated input shape
+                # input = features[:,i,:,:]  # input for current timestep 
+                # input = input.reshape(1, *input.shape)  # fit shape to models expectated input shape
+                print(logits_inter_layers[i].shape)
+                input = logits_inter_layers[i][i,:]
                 feed_dict = {
                     inputs['input']: input,
                     inputs['input_lengths']: [1],
@@ -191,19 +192,25 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
                     inputs['previous_state_h']: previous_state_h,
                 }
 
-                scores_for_timestep, _ = inter_intgrads(input, riemann_steps, feed_dict, inputs['input'],
-                                                    intermediate_layers, gradients_per_layer, session)
+                for inter_tensor in intermediate_layers:  # get gradients for intermediate layers for current timestep
+                    explainer = shap.DeepExplainer((inter_tensor, output_tensor), logits_inter_layers[i], session=session)
+                    shap_values = explainer.shap_values(input)
+                    print(shap_values)
 
-                scores.append(scores_for_timestep)
+
+                # scores_for_timestep, _ = inter_intgrads(input, riemann_steps, feed_dict, inputs['input'],
+                #                                     intermediate_layers, gradients_per_layer, session)
+
+                # scores.append(scores_for_timestep)
 
                 # n_same_targets = 0
                 
             
-            scores = np.array(scores).squeeze()
-            # Save neuron importance scores to file
-            save_to_path_scores = '{}/imp_scores_per_timestep/{}.npy'.format(output_dir, file_name[:-4])
-            write_numpy_to_file(save_to_path_scores, scores)
-            print('Layer scores for {} are saved to: {}'.format(file_name, save_to_path_scores))
+            # scores = np.array(scores).squeeze()
+            # # Save neuron importance scores to file
+            # save_to_path_scores = '{}/shap_scores_per_timestep/{}.npy'.format(output_dir, file_name[:-4])
+            # write_numpy_to_file(save_to_path_scores, scores)
+            # print('Layer scores for {} are saved to: {}'.format(file_name, save_to_path_scores))
             
             # Save activations of actual input
             # save_to_path_activations = '{}/activations/full_model/{}.npy'.format(output_dir, file_name[:-4])

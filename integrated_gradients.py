@@ -32,16 +32,20 @@ def integrated_gradients(inp, target_label_index, predictions_and_gradients, bas
 
     # Scale input and compute gradients.
     scaled_inputs = [baseline + (float(i)/steps)*(inp-baseline) for i in range(0, steps+1)]
-
+    scaled_inputs = np.squeeze(np.array(scaled_inputs), axis=1)
+    
     # result = [predictions_and_gradients(np.expand_dims(input, axis=0), target_label_index) for input in scaled_inputs]
     # predictions = np.array([r[0][0] for r in result])
     # grads = np.squeeze(np.array([r[1][0] for r in result]), axis=1)
 
+    predictions, grads = predictions_and_gradients(scaled_inputs)  # shapes: <steps+1>, <steps+1, inp.shape>
+    # predictions = results[0]
+    # grads = np.squeeze(np.array(results[1:]), axis=1)
+    # print(grads.shape)
 
-    predictions, grads = predictions_and_gradients(scaled_inputs, target_label_index)  # shapes: <steps+1>, <steps+1, inp.shape>
-    predictions = np.array(predictions)
-    grads = np.squeeze(np.array(grads), axis=0)
-
+    grads = grads[0]
+    predictions = np.array(predictions).reshape(steps+1, grads.shape[0], predictions[0].shape[0])
+    
     # Use trapezoidal rule to approximate the integral.
     # See Section 4 of the following paper for an accuracy comparison between
     # left, right, and trapezoidal IG approximations:
@@ -51,7 +55,7 @@ def integrated_gradients(inp, target_label_index, predictions_and_gradients, bas
     grads = (grads[:-1] + grads[1:]) / 2.0
     avg_grads = np.average(grads, axis=0)
     integrated_gradients = (inp-baseline)*avg_grads  # shape: <inp.shape>
-    return integrated_gradients, predictions, _get_ig_error(integrated_gradients, predictions)
+    return integrated_gradients, predictions
 
 def _get_ig_error(integrated_gradients, predictions):
     sum_attributions = 0
@@ -120,50 +124,78 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             logits = outputs['outputs'].eval(feed_dict=feed_dict, session=session)
             logits = np.squeeze(logits)
             target_per_sequence_unit = np.argmax(logits, axis=1)  # holds the predicted output index per sequence unit
-            # ouput_value_per_seq_unit = [logits[i,t] for i, t in enumerate(target_per_sequence_unit)]
 
-            def make_predictions_and_gradients(sess, feeds, layers):
+            def make_predictions_and_gradients(sess, xs, y, feeds, output_tensor):
                 """Returns a function that can be used to obtain the predictions and gradients
                 from the Inception network for a set of inputs. 
                 
                 The function is meant to be provided as an argument to the integrated_gradients
                 method.
                 """
-                label_index = tf.placeholder(tf.int32, [])
-                label_prediction = layers['layer_6'][:, label_index]
                 predictions = layers['layer_6']
-                grads = tf.gradients(label_prediction, feeds[0])
+                grads = tf.gradients(y, xs)
 
-                run_graph = sess.make_callable([predictions, grads], feed_list=feeds+[label_index])
-                def f(inputs, target_label_index):
-                    inputs = np.array(inputs)
-                    shape = inputs.shape
-                    inputs = np.squeeze(inputs, axis=1)
-                    len = shape[0]
-                    return run_graph(inputs, np.full(len, 1), np.zeros([len, 2048]), np.zeros([len, 2048]), target_label_index)
+                run_graph = sess.make_callable([predictions]+grads, feed_list=feeds)
+                def f(x):
+                    batch_len = len(x)
+                    features_len = x[0].shape[1]
+                    return run_graph(x, np.full(batch_len, features_len), np.zeros([batch_len, 2048]), np.zeros([batch_len, 2048]))
                 return f
 
-            ig_steps = 30
+            ig_steps = 100
             tfv1.get_variable_scope().reuse_variables()
             inputs, outputs, layers = create_inference_graph(batch_size=ig_steps+1, n_steps=-1)
-            baseline_correction = np.mean(features, axis=1)
-            error_rate = []
-            for i in range(features_len[0]):
-                if i/20 in range(30):
-                    print('working on {}th example'.format(i))
-                input = features[:,i,:,:]
-                input = input.reshape(1, *input.shape)  # fit shape to models expectated input shape
-                # baseline = input - baseline_correction
 
-                feeds = [inputs['input'], inputs['input_lengths'], inputs['previous_state_c'],inputs['previous_state_h']]
-                pred_and_grad_f = make_predictions_and_gradients(session, feeds, layers)
+            output_tensor = layers['layer_6']
+            ys = [output_tensor[i,t] for i, t in enumerate(target_per_sequence_unit)]
+            x = inputs['input']
+            feeds = [inputs['input'], inputs['input_lengths'], inputs['previous_state_c'], inputs['previous_state_h']]
 
-                igs, predictions, error = integrated_gradients(inp=input, target_label_index=target_per_sequence_unit[i],
+            igs = []
+            for i, y in enumerate(ys):
+                print(f'doing stuff for {i}')
+                pred_and_grad_f = make_predictions_and_gradients(session, x, y, feeds, output_tensor)
+                ig, predictions = integrated_gradients(inp=features, target_label_index=None,
                                                 predictions_and_gradients=pred_and_grad_f, baseline=None, steps=ig_steps)
-                print(error)
-                error_rate.append(error)
+                igs.append(ig)
+            
 
-            print('average error: {}', sum(error_rate)/len(error_rate))
+            igs = np.average(np.squeeze(np.array(igs), axis=1), axis=0)
+            write_numpy_to_file('./results/integrated_gradients.npy', igs)
+            
+
+            # ig_sum = np.sum(igs)
+            # activations_diff = predictions[-1] - predictions[0]
+            # error_rate = (activations_diff - ig_sum) / activations_diff
+            # print(f'Error rate: {np.average(error_rate) * 100}%.')
+
+            for i in range(features.shape[1]):
+                try:
+                    diff = igs[i,:,:] - igs[i+1,:,:]
+                    print(f'Error between {i} and {i+1}: {np.average(diff)}')
+                except:
+                    pass
+
+
+
+            # baseline_correction = np.mean(features, axis=1)
+            # error_rate = []
+            # for i in range(features_len[0]):
+            #     if i/20 in range(30):
+            #         print('working on {}th example'.format(i))
+            #     input = features[:,i,:,:]
+            #     input = input.reshape(1, *input.shape)  # fit shape to models expectated input shape
+            #     # baseline = input - baseline_correction
+
+            #     feeds = [inputs['input'], inputs['input_lengths'], inputs['previous_state_c'],inputs['previous_state_h']]
+            #     pred_and_grad_f = make_predictions_and_gradients(session, feeds, layers)
+
+            #     igs, predictions, error = integrated_gradients(inp=input, target_label_index=target_per_sequence_unit[i],
+            #                                     predictions_and_gradients=pred_and_grad_f, baseline=None, steps=ig_steps)
+            #     print(error)
+            #     error_rate.append(error)
+
+            # print('average error: {}', sum(error_rate)/len(error_rate))
 
             sys.exit(1)
 

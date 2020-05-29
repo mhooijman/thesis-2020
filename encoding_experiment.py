@@ -53,18 +53,16 @@ def do_gender_encoding_experiment(activations_dir, speakers_data):
             # Average activations over timesteps and L2 normalize
             mean_activations = np.mean(layer_act, axis=0)
             l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
-            
+
             layer_name = 'layer_{}'.format(i)
             if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
             activations_per_layer[layer_name].append(l2_activations)
 
-    for name, activations in activations_per_layer.items():
-        print('Training Logistic Regression classifier for {} activations'.format(name))
-
-        X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
-
-        classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
-        print('Accuracy for layer {}: {}'.format(name, classifier.score(X_test, y_test)))
+for name, activations in activations_per_layer.items():
+    print('Training Logistic Regression classifier for {} activations'.format(name))
+    X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
+    classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
+    print('Accuracy for layer {}: {}'.format(name, classifier.score(X_test, y_test)))
 
 
 def do_sentence_length_encoding_experiment(activations_dir, sentence_data):

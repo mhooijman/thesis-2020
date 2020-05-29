@@ -101,7 +101,7 @@ def main(_):
                 scores_path='./results/activations_combined_sets/activations_set_{}.npy'.format(set['set_id']),
                                             prune_percent=percent, evaluate_files=file_info)
 
-            evaluation['{}-{}'.format(set, percent)] = results
+            evaluation['{}-{}'.format(set['set_id'], percent)] = results
             print(results)
     json.dump(evaluation, open('./results/evaluation_per_pertubed_set.json', 'w+'))
 

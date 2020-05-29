@@ -35,10 +35,36 @@ for d in items:
 
 
 selection = [{'set_id':i, 'set_length':len(item), 'set_items':item} for i, item in enumerate(list(result.values())) if len(item) >= 10]
+json.dump(selection, open('./data/pertubed_input_sets.json', 'w+'), indent=4)
 
-print('{} sets found (male: {}, female: {}).'.format(len(selection), male, female))
+print('{} sets found (male: {}, female: {}.).'.format(len(selection), male, female))
 
-json.dump(selection, open('pertubed_input_sets.json', 'w+'), indent=4)
+print('Balance out gender in each set...')
+balanced_sets = []
+for set in selection:
+    male = 0
+    female = 0
+    for item in set['set_items']:
+        if item['gender'] == 'male': male+=1
+        if item['gender'] == 'female': female+=1
+    items_balanced = []
+    if male < female: n = male
+    else: n = female
+    male = 0
+    female = 0
+    for item in set['set_items']:
+        if item['gender'] == 'male' and male < n:
+            items_balanced.append(item)
+            male+=1
+        if item['gender'] == 'female' and female < n:
+            items_balanced.append(item)
+            female+=1
+    if len(items_balanced) >= 10:
+        set['set_items'] = items_balanced
+        set['set_length'] = len(items_balanced)
+        balanced_sets.append(set)
+
+json.dump(balanced_sets, open('./data/pertubed_input_sets_balanced.json', 'w+'), indent=4)
 
 
 # Preprocess audio files
