@@ -109,7 +109,7 @@ def main(_):
     # Prune and evaluate on original test set
     print('Evaluating pruning on original test set')
     librispeech_info = get_file_info('./data/librivox-test-clean.csv')
-    file_info = [librispeech_info[item['path'][:-4]] for item in librispeech_info]
+    file_info = [librispeech_info[item['path'][:-4]] for item in librispeech_info.values()]
     evaluation = {}
     for percent in percents:
         results = evaluate(
