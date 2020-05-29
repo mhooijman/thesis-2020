@@ -72,6 +72,13 @@ def main(_):
             filename = item['path'][:-4]
             file_info.append(common_voice_info[filename])
 
+    # Clean up characters in case they are in the transcript
+    not_allowed = [',', '.', '!', '?']
+    for info in file_info:
+        if any(c in info['transcript'] for c in not_allowed):
+            for c in not_allowed:
+                info['transcript'] = info['transcript'].replace(c, '')
+
     # file_info = [common_voice_info[name] for name in [item['path'][:-4] 
     #             for item in [set['set_items'] for set in pertubed_sets]]]
 
