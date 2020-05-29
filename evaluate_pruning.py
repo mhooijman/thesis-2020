@@ -73,7 +73,7 @@ def main(_):
             file_info.append(common_voice_info[filename])
 
     # Clean up characters in case they are in the transcript
-    not_allowed = [',', '.', '!', '?']
+    not_allowed = [',', '.', '!', '?', '"']
     for info in file_info:
         if any(c in info['transcript'] for c in not_allowed):
             for c in not_allowed:
