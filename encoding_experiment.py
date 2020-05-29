@@ -20,9 +20,12 @@ def prepare_speaker_data(file_path):
 
 def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
-    activation_files = os.listdir(activations_dir)
-    data = [np.load('{}/{}'.format(activations_dir, f), 'r') 
-        for f in activation_files if f.endswith('.npy')]
+    activation_files = []
+    for set in sets:
+        activation_files += os.listdir('{}/{}'.format(activations_dir, set['set_id']))
+
+    print('{} files found'.format(len(activation_files)))
+    data = [np.load(f), 'r') for f in activation_files if f.endswith('.npy')]
 
     labels = [speakers_data[i.split('-')[0]] for i in os.listdir(activations_dir)]
 
@@ -46,7 +49,6 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
 
 def main():
-    sencente_data = prepare_sentence_data('./data/librivox-test-clean-real.csv')
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
