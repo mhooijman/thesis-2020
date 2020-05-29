@@ -21,12 +21,12 @@ def prepare_speaker_data(file_path):
 
 def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
-    activation_files = []
+    data = []
     for set in sets:
-        activation_files += os.listdir('{}/{}'.format(activations_dir, set['set_id']))
-
-    print('{} files found'.format(len(activation_files)))
-    data = [np.load(open(f, 'r')) for f in activation_files if f.endswith('.npy')]
+        activation_files = os.listdir('{}/{}'.format(activations_dir, set['set_id']))
+        data += [np.load(open('{}/{}/{}'.format(activations_dir, set['set_id'], f), 'r')) for f in activation_files if f.endswith('.npy')]
+        
+    print('{} files found'.format(len(data)))
 
     labels = [speakers_data[i.split('-')[0]] for i in os.listdir(activations_dir)]
 
