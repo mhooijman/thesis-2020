@@ -63,10 +63,6 @@ def main(_):
     common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
     percents = [0, .05, .1, .2]
 
-
-    # Prune on all pertubed sets combined and evaluate on test set
-    evaluation = {}
-
     file_info = []
     for set in pertubed_sets:
         if str(set['set_id']) in train_sets: continue
@@ -76,7 +72,6 @@ def main(_):
 
     print('{} test files found...'.format(len(file_info)))
 
-    
     # Clean up characters in case they are in the transcript
     not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
     for info in file_info:
@@ -84,15 +79,15 @@ def main(_):
             for c in not_allowed:
                 info['transcript'] = info['transcript'].replace(c, '')
 
-    # file_info = [common_voice_info[name] for name in [item['path'][:-4] 
-    #             for item in [set['set_items'] for set in pertubed_sets]]]
-
+    
+    # Prune on all pertubed sets combined and evaluate on test set
+    evaluation = {}
     for percent in percents:
-        pruned_results, random_results = evaluate(
+        results = evaluate(
             scores_path='./results/activations_combined.npy', prune_percent=percent,
                                                                     evaluate_files=file_info)
         evaluation['{}'.format(percent)] = results
-
+        print(results)
     json.dump(evaluation, open('./results/evaluations_all_pertubated_sets.json', 'w+'))
 
 
@@ -102,12 +97,12 @@ def main(_):
         if str(set['set_id']) in train_sets: continue
         file_info = [common_voice_info[name] for name in [item['path'][:-4] for item in set]]
         for percent in percents:
-            pruned_results, random_results = evaluate(
+            results = evaluate(
                 scores_path='./results/activations_combined_sets/activations_set_{}.npy'.format(set['set_id']),
                                             prune_percent=percent, evaluate_files=file_info)
 
             evaluation['{}-{}'.format(set, percent)] = results
-
+            print(results)
     json.dump(evaluation, open('./results/evaluation_per_pertubed_set.json', 'w+'))
 
 
@@ -120,6 +115,7 @@ def main(_):
                                                                 evaluate_files=file_info)
         
         evaluation['{}'.format(percent)] = results
+        print(results)
     
     json.dump(evaluation, open('./results/evaluations_original_test_set.json', 'w+'))
 
