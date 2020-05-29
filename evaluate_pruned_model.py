@@ -28,7 +28,7 @@ from util.logging import log_error, log_progress, create_progressbar
 from evaluate import sparse_tensor_value_to_texts, sparse_tuple_to_texts
 
 
-def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
+def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True, skip_lstm=False):
     '''Returns a matrix with ones and zeros for each layers
     Supports input to be a numpy array. The layers of the DeepSpeech
     model have an equal number of neurons.'''
@@ -41,22 +41,21 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     n_neurons_prune = int(n_neurons_total * prune_percentage)
     if verbose: print('Neurons to prune: {}'.format(n_neurons_prune))
     
-    # rm lstm layer
-    print(input_array.shape)
-    input_array = np.delete(input_array, 4, 0)
-    n_neurons_total = 1
-    for n in input_array.shape:
-      n_neurons_total *= n
+    if skip_lstm:  # rm lstm layer
+        input_array = np.delete(input_array, 4, 0)
+        n_neurons_total = 1
+        for n in input_array.shape:
+            n_neurons_total *= n
 
     scores_1d = input_array.flatten()
 
     if random:
-        if verbose:print('Creating random pruning masks...')
+        if verbose: print('Creating random pruning masks...')
         mask = np.ones_like(scores_1d)
         mask[:n_neurons_prune] = 0
         np.random.shuffle(mask)
     else:
-        if verbose:print('Creating score-based pruning masks...')
+        if verbose: print('Creating score-based pruning masks...')
         scores_1d = np.abs(scores_1d)
         keep_indexes = scores_1d.argsort()[-(n_neurons_total-n_neurons_prune):]
         mask = np.zeros_like(scores_1d)
@@ -77,7 +76,7 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True):
     return [layer for layer in scores_muted]
 
 
-def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, result_file, verbose=True):
+def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, result_file, verbose=True, skip_lstm=False):
     '''Code originaly comes from the DeepSpeech repository (./DeepSpeech/evaluate.py).
     The code is adapted for evaluation on pruned versions of the DeepSpeech model.
     '''
@@ -147,24 +146,23 @@ def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, resu
             if verbose: print('-'*80)
             if verbose: print('pruning with {}%...'.format(prune_percentage))
             scores_per_layer = np.load(scores_file)
-            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=random, verbose=verbose)
+            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=random, verbose=verbose, skip_lstm=skip_lstm)
 
             n_layers_to_prune = len(layer_masks)
             i=0
             for index, v in enumerate(tf.trainable_variables()):
-                if 'weights' not in v.name and v.name != 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0': continue
+                lstm_layer_name = 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0'
+                if 'weights' not in v.name and v.name != lstm_layer_name: continue
                 if(i >= n_layers_to_prune): break  # if i < total_ops, it is not yet the last layer
-                if v.name == 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0':
-                    # i+=1
-                    continue
                 # make mask into the shape of the weights                
-                # if v.name == 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0':
-                #     # Shape of LSTM weights: [(2*neurons), (4*neurons)]
-                #     cell_template = np.ones((2, 4))
-                #     mask = np.repeat(layer_masks[i], v.shape[0]//2, axis=0)
-                #     mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]//2])
-                #     mask = np.swapaxes(mask, 0, 1)
-                #     mask = np.kron(mask, cell_template)
+                if v.name == lstm_layer_name:
+                    if skip_lstm: continue
+                    # Shape of LSTM weights: [(2*neurons), (4*neurons)]
+                    cell_template = np.ones((2, 4))
+                    mask = np.repeat(layer_masks[i], v.shape[0]//2, axis=0)
+                    mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]//2])
+                    mask = np.swapaxes(mask, 0, 1)
+                    mask = np.kron(mask, cell_template)
                 else:
                     idx = layer_masks[i] == 1
                     mask = np.repeat(layer_masks[i], v.shape[0], axis=0)
@@ -223,29 +221,20 @@ def evaluate_with_pruning(test_csvs, prune_percentage, random, scores_file, resu
                   (dataset, wer, cer, mean_loss))
             if verbose: print('-' * 80)
 
-            pruning_type = 'score-based' if not random else 'random'
-            result_string = '''Results for evaluating model with pruning percentage of {}% and {} pruning:
-            Test on {} - WER: {}, CER: {}, loss: {}
-
-            '''.format(prune_percentage*100, pruning_type, dataset, wer, cer, mean_loss)
-            write_to_file(result_file, result_string, 'a+')
+            if result_file:
+                pruning_type = 'score-based' if not random else 'random'
+                result_string = '''Results for evaluating model with pruning percentage of {}% and {} pruning:
+                Test on {} - WER: {}, CER: {}, loss: {}
+                '''.format(prune_percentage*100, pruning_type, dataset, wer, cer, mean_loss)
+                write_to_file(result_file, result_string, 'a+')
             
-            for sample in report_samples:
-                if verbose: 
-                    print('WER: %f, CER: %f, loss: %f' %
-                        (sample.wer, sample.cer, sample.loss))
-                    print(' - wav: file://%s' % sample.wav_filename)
-                    print(' - src: "%s"' % sample.src)
-                    print(' - res: "%s"' % sample.res)
-                    print('-' * 80)
+            return wer, cer, mean_loss
 
-            return samples
-
-        samples = []
+        results = []
         for csv, init_op in zip(test_csvs, test_init_ops):
             if verbose: print('Testing model on {}'.format(csv))
-            samples.extend(run_test(init_op, dataset=csv))
-        return samples
+            results.extend(run_test(init_op, dataset=csv))
+        return results
 
 
 def main(_):
