@@ -14,6 +14,7 @@ import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 import pickle as pkl
 from utils import write_numpy_to_file, create_dir_if_not_exists
+from evaluate_pruned_model import prune_matrices
 
 sys.path.append('./DeepSpeech')
 from util.config import Config, initialize_globals
@@ -23,14 +24,20 @@ from util.feeding import audiofile_to_features
 import numpy as np
 
 
-def activations_pertubed_sets(input_dir, output_dir):
+def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, verbose=True):
     '''Obtains activations for wavs in input_dir and saves them to output_dir'''
     inputs, outputs, layers = create_inference_graph(batch_size=1, n_steps=-1)
     intermediate_layer_names = ['layer_1', 'layer_2', 'layer_3', 'rnn_output', 'layer_4', 'layer_5']
     intermediate_layers = [l for n,l in layers.items() if n in intermediate_layer_names]
     
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
+    skip_sets = []
+    if test_only: skip_sets = json.load(open('./results/set_ids_used.json'))
+    
+    if not prune_percentage: base_path = '{}/activations'.format(output_dir)
+    else: base_path = '{}/activations/pruned-{}'.format(output_dir, prune_percentage*100)
 
+    
     with tfv1.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
         saver = tfv1.train.Saver()
@@ -45,16 +52,54 @@ def activations_pertubed_sets(input_dir, output_dir):
             print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
             sys.exit(1)
 
+
+        ###### PRUNING PART ######
+
+        if verbose: 
+            if not prune_percentage: print('No pruning done.')
+        else:
+            if verbose: print('-'*80)
+            if verbose: print('pruning with {}%...'.format(prune_percentage))
+            scores_per_layer = np.load(scores_file)
+            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=False, verbose=verbose, skip_lstm=False)
+
+            n_layers_to_prune = len(layer_masks)
+            i=0
+            for index, v in enumerate(tf.trainable_variables()):
+                lstm_layer_name = 'cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/kernel:0'
+                if 'weights' not in v.name and v.name != lstm_layer_name: continue
+                if(i >= n_layers_to_prune): break  # if i < total_ops, it is not yet the last layer
+                # make mask into the shape of the weights                
+                if v.name == lstm_layer_name:
+                    if skip_lstm: continue
+                    # Shape of LSTM weights: [(2*neurons), (4*neurons)]
+                    cell_template = np.ones((2, 4))
+                    mask = np.repeat(layer_masks[i], v.shape[0]//2, axis=0)
+                    mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]//2])
+                    mask = np.swapaxes(mask, 0, 1)
+                    mask = np.kron(mask, cell_template)
+                else:
+                    idx = layer_masks[i] == 1
+                    mask = np.repeat(layer_masks[i], v.shape[0], axis=0)
+                    mask = mask.reshape([layer_masks[i].shape[0], v.shape[0]])
+                    mask = np.swapaxes(mask, 0, 1)
+
+                # apply mask to weights
+                session.run(v.assign(tf.multiply(v, mask)))
+                i+=1
+
+        ###### END PRUNING PART ######
+
         # Default states for LSTM cell
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
-        for set in pertubed_sets:
+        for set in [set for set in pertubed_sets if set['set_id'] not in skip_sets]:
             print('Processing set {}, {} items...'.format(set['set_id'], set['set_length']))
 
             # Only process files that are not yet available in results directory
-            create_dir_if_not_exists('{}/activations/{}'.format(output_dir, set['set_id']))  # Check if directory exists
-            files_done = [f[:-4] for f in os.listdir('{}/activations/{}'.format(output_dir, set['set_id'])) if f.endswith('.npy')]
+            create_dir_if_not_exists('{}/{}'.format(base_path, set['set_id']))  # Check if directory exists
+            files_done = [f[:-4] for f in os.listdir('{}/{}'.format(base_path, set['set_id'])) if f.endswith('.npy')]
 
             for item in set['set_items']:
                 file_name = item['path'][:-4]
@@ -82,7 +127,7 @@ def activations_pertubed_sets(input_dir, output_dir):
                 intermediate_activations = session.run(intermediate_layers, feed_dict=feed_dict)
 
                 # Save activations of actual input
-                save_to_path_activations = '{}/activations/{}/{}.npy'.format(output_dir, set['set_id'], file_name)
+                save_to_path_activations = '{}/{}/{}.npy'.format(base_path, set['set_id'], file_name)
                 write_numpy_to_file(save_to_path_activations, np.array(intermediate_activations))
                 print('Activations for {} are saved to: {}'.format(file_name, save_to_path_activations))
 
@@ -94,7 +139,16 @@ def main(_):
 
     initialize_globals()
     tfv1.reset_default_graph()
-    if activations_pertubed_sets(input_dir=input_dir, output_dir=output_dir): print('Done.')
+    
+    # # Obtain activations for all sets without pruning
+    # activations_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
+
+    # Obtain activations for non-training sets with pruning
+    activations_pertubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+
 
 if __name__ == "__main__":
     create_flags()
