@@ -11,7 +11,7 @@ combined_set_activations = []
 set_ids = []
 for set in os.listdir('./results/activations/')[0:-40]:
     set_path = './results/activations/{}'.format(set)
-    set_ids.append(set['set_id'])
+    set_ids.append(set)
     
     averaged_set_activations = None
     try:
