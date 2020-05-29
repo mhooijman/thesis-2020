@@ -58,26 +58,26 @@ def main(_):
     # - files used for pruning (per set prune or total prune)
     # - original test set for model
 
-    pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
-    train_sets = json.load(open('./results/set_ids_used.json'))
-    common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
+    # pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
+    # train_sets = json.load(open('./results/set_ids_used.json'))
+    # common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
     percents = [0, .05, .1, .2]
 
-    file_info = []
-    for set in pertubed_sets:
-        if str(set['set_id']) in train_sets: continue
-        for item in set['set_items']:
-            filename = item['path'][:-4]
-            file_info.append(common_voice_info[filename])
+    # file_info = []
+    # for set in pertubed_sets:
+    #     if str(set['set_id']) in train_sets: continue
+    #     for item in set['set_items']:
+    #         filename = item['path'][:-4]
+    #         file_info.append(common_voice_info[filename])
 
-    print('{} test files found...'.format(len(file_info)))
+    # print('{} test files found...'.format(len(file_info)))
 
-    # Clean up characters in case they are in the transcript
-    not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
-    for info in file_info:
-        if any(c in info['transcript'] for c in not_allowed):
-            for c in not_allowed:
-                info['transcript'] = info['transcript'].replace(c, '')
+    # # Clean up characters in case they are in the transcript
+    # not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
+    # for info in file_info:
+    #     if any(c in info['transcript'] for c in not_allowed):
+    #         for c in not_allowed:
+    #             info['transcript'] = info['transcript'].replace(c, '')
 
     
     # # Prune on all pertubed sets combined and evaluate on test set
@@ -107,7 +107,9 @@ def main(_):
 
 
     # Prune and evaluate on original test set
-    file_info = get_file_info('./data/librivox-test-clean.csv')
+    print('Evaluating pruning on original test set')
+    librispeech_info = get_file_info('./data/librivox-test-clean.csv')
+    file_info = [librispeech_info[item['path'][:-4]] for item in librispeech_info]
     evaluation = {}
     for percent in percents:
         results = evaluate(
