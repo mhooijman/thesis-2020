@@ -94,7 +94,9 @@ def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_perc
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
-        for set in [set for set in pertubed_sets if set['set_id'] not in skip_sets]:
+        sets_to_process = [set for set in pertubed_sets if str(set['set_id']) not in skip_sets]
+        print('{} sets found'.format(len(sets_to_process)))
+        for set in sets_to_process:
             print('Processing set {}, {} items...'.format(set['set_id'], set['set_length']))
 
             # Only process files that are not yet available in results directory
