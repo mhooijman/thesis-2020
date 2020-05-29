@@ -16,11 +16,13 @@ for set in os.listdir('./results/activations/')[0:-40]:
     averaged_set_activations = None
     try:
         averaged_set_activations = np.load('{}/activations_{}'.format(result_dir, set))
-    except:
+        print('Set {} was already processed...'.format(set))
+    except Exception as e:
+        print(e)
         pass
 
     if not averaged_set_activations:
-
+        print('Processing set {}'.format(set))
         l2_set_activations = []
         activation_files = [f for f in os.listdir(set_path) if f.endswith('.npy')]
         for f in activation_files:
