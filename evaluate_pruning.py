@@ -80,28 +80,28 @@ def main(_):
                 info['transcript'] = info['transcript'].replace(c, '')
 
     
-    # Prune on all pertubed sets combined and evaluate on test set
-    evaluation = {}
-    for percent in percents:
-        results = evaluate(
-            scores_path='./results/activations_combined.npy', prune_percent=percent,
-                                                                    evaluate_files=file_info)
-        evaluation['{}'.format(percent)] = results
-        print(results)
-    json.dump(evaluation, open('./results/evaluations_all_pertubated_sets.json', 'w+'))
+    # # Prune on all pertubed sets combined and evaluate on test set
+    # evaluation = {}
+    # for percent in percents:
+    #     results = evaluate(
+    #         scores_path='./results/activations_combined.npy', prune_percent=percent,
+    #                                                                 evaluate_files=file_info)
+    #     evaluation['{}'.format(percent)] = results
+    #     print(results)
+    # json.dump(evaluation, open('./results/evaluations_all_pertubated_sets.json', 'w+'))
 
 
     # Prune and evaluate per pertubed set
     evaluation = {}
     for set in pertubed_sets:
         if str(set['set_id']) in train_sets: continue
-        file_info = [common_voice_info[name] for name in [item['path'][:-4] for item in set]]
+        file_info = [common_voice_info[name] for name in [item['path'][:-4] for item in set['set_items']]
         for percent in percents:
             results = evaluate(
                 scores_path='./results/activations_combined_sets/activations_set_{}.npy'.format(set['set_id']),
                                             prune_percent=percent, evaluate_files=file_info)
 
-            evaluation['{}-{}'.format(set, percent)] = results
+            evaluation['{}-{}'.format(set['set_id'], percent)] = results
             print(results)
     json.dump(evaluation, open('./results/evaluation_per_pertubed_set.json', 'w+'))
 

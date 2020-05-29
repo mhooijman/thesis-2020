@@ -15,7 +15,8 @@ Summary of installation (make use of git-lfs).
 git clone https://github.com/mhooijman/DeepSpeech.git ./DeepSpeech
 cd DeepSpeech && git checkout v0.6.1 && pip install -r requirements.txt
 pip install $(python ./util/taskcluster.py --decoder)
-sudo apt-get install sox
+sudo apt-get install sox libsox-fmt-all
+
 
 python -m pip install tensorflow-gpu==1.14.0  # optional
 ```
@@ -36,6 +37,16 @@ python DeepSpeech/DeepSpeech.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint \
 --alphabet_config_path ./DeepSpeech/data/alphabet.txt --one_shot_infer ./DeepSpeech/data/smoke_test/LDC93S1.wav \
 --lm_binary_path ./DeepSpeech/data/lm/lm.binary --lm_trie_path ./DeepSpeech/data/lm/trie
 ```
+
+
+Download Mozilla's Common Voice English dataset
+```
+wget "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/en.tar.gz" -O ./data/en.tar.gz
+mkdir CommonVoice
+tar -C ./data/CommonVoice -xf ./data/en.tar.gz && rm -f ./data/en.tar.gz
+python utils/import_common_voice_en_data.py
+rm -rf ./data/CommonVoice/EN/clips # optional to remove unused files
+
 
 Download Librivox data (python file handles already exist check). From the root folder execute:
 ```

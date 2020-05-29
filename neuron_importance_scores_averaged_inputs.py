@@ -22,16 +22,18 @@ from DeepSpeech import create_inference_graph, try_loading, create_overlapping_w
 from util.feeding import audiofile_to_features
 
 
-def inter_intgrads(input_value, riemann_steps, feed_dict, input_tensor, inter_tensors, inter_gradients, session, act=False):  
+def inter_intgrads(input_value, reference_value, grads_and_activation_func, 
+                n, feed_dict, input_tensor, inter_tensor, gradients, session):  
     '''Code originaly comes from the following paper: https://arxiv.org/pdf/1807.09946.pdf.
-    The code is adapted for computing scores for multiple layers in the same run.'''
+    The code is adapted for computing scores for multiple layers in the same tf session.'''
+
 
     # print(type(input_value), input_value.shape)
     # print(type(reference_value), reference_value.shape)
     #(1) Interpolate between reference_value and input_value at n+1 points
-    reference_value = np.zeros_like(input_value)  # Reference value represents the absence of any signal, zeros.
-    step_size = (input_value - reference_value)/float(riemann_steps)
-    intermediate_values = [reference_value + i*step_size for i in range(riemann_steps+1)] 
+    step_size = (input_value - reference_value)/float(n)
+    intermediate_values = [reference_value + i*step_size
+                           for i in range(n+1)] 
 
     #(2) Compute the gradient and activation on the
     # neurons at each of the n+1 points
@@ -41,28 +43,24 @@ def inter_intgrads(input_value, riemann_steps, feed_dict, input_tensor, inter_te
     activations_at_intermediate_values = []
     i = 0
     while intermediate_values:
-        # print('Compute gradients for intermediate values {}'.format(i))
+        print('Compute gradients for intermediate values {}'.format(i))
         i += 1
-        iv = intermediate_values.pop()
-        print(iv.shape)
-        feed_dict[input_tensor] = iv
+        feed_dict[input_tensor] = intermediate_values.pop()
 
-        # inter_tensors and inter_gradients are lists with respectively input tensors and gradient ops per layer
-        # input for session.run() = [inter_tensors, ...layer_2, ..., ...layer_n] + [gradients_layer_1, ...layer_2, ..., ...layer_n]
-        output = session.run(inter_tensors+inter_gradients, feed_dict=feed_dict)  
-        activations_at_intermediate_values.append(output[0:len(inter_tensors)])
-        gradients_at_intermediate_values.append(output[len(inter_tensors):])
+        # inter_tensor and gradients are lists with respectively input tensors and gradient ops per layer
+        # input for session.run() = [inter_tensor_layer_1, i_t_layer_2, ..., i_t_layer_n] + [gradients_layer_1, ... grad_layer_2, grad_layer_n]
+        output = session.run(inter_tensor+gradients, feed_dict=feed_dict)  
+        activations_at_intermediate_values.append(output[0:len(inter_tensor)])
+        gradients_at_intermediate_values.append(output[len(inter_tensor):])
 
-        if i == riemann_steps:
-            if act:  # above computations are on the actual input
-                # capture activations for further experiments
-                input_activations = np.array(output[0:len(inter_tensors)])
-            else: input_activations = []
+        if i == n:  # above computations are on the actual input
+            # capture activations for further experiments
+            input_activations = np.array(output[0:len(inter_tensor)])
 
     # Group activations and gradients per layer
     grouped_per_layer = {}
-    for input_i in range(riemann_steps+1):
-        for layer_i in range(len(inter_tensors)):
+    for input_i in range(n+1):
+        for layer_i in range(len(inter_tensor)):
             layer_name = 'layer_{}'.format(layer_i)
             if layer_name not in grouped_per_layer: grouped_per_layer[layer_name] = {'activations': [], 'gradients': []}
             grouped_per_layer[layer_name]['activations'].append(activations_at_intermediate_values[input_i][layer_i])
@@ -118,16 +116,13 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
             sys.exit(1)
 
-        importance_scores = {}
-        n = riemann_steps  # Number of steps in Riemann sum approximation of integration
-
         # Default states for LSTM cell
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
         # Only process files that are not yet available in results directory
-        create_dir_if_not_exists('{}/imp_scores_per_timestep'.format(output_dir))  # Check if directory exists
-        files_done = [f[:-4] for f in os.listdir('{}/imp_scores_per_timestep'.format(output_dir)) if f.endswith('.npy')]
+        create_dir_if_not_exists('{}/imp_scores_avg_inputs'.format(output_dir))  # Check if directory exists
+        files_done = [f[:-4] for f in os.listdir('{}/imp_scores_avg_inputs'.format(output_dir)) if f.endswith('.npy')]
         input_files = [f for f in os.listdir(input_dir) if f.endswith('.wav') and f[:-4] not in files_done]
 
         print('{} audio files found. Start computing neuron importance...'.format(len(input_files)))
@@ -155,7 +150,9 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
             logits = outputs['outputs'].eval(feed_dict=feed_dict, session=session)
             logits = np.squeeze(logits)
 
-            target_per_sequence_unit = np.argmax(logits, axis=1)  # holds the predicted output index per sequence unit
+            
+            # avg_logits = np.average(logits, axis=0)
+            avg_features = np.average(features, axis=1).reshape(-1, 1, 19, 26)
 
             # Layer stuff
             intermediate_layers = [item for key,item in layers.items() if key not in ['input_reshaped', 'layer_6']]        
@@ -164,51 +161,35 @@ def neuron_importance(input_dir, output_dir, riemann_steps):
 
             # To compute conductance we need:
             # - Gradients of the predicted output value with resprect to the intermediate layers
-            scores = []
-            # prev_target_idx = target_per_sequence_unit[0]
-            # n_same_targets = 0
 
-            for i in range(features.shape[1]):
-
-                target_idx = target_per_sequence_unit[i]  # target for current timestep
-                # if prev_target_idx == target_idx:
-                #     n_same_targets += 1
-                #     continue
-                
-                print('Computing {} (of {})'.format(i, features.shape[1]))
-                gradients_per_layer = []
-                
-                output_tensor_timesteps = output_tensor[i,target_idx]
-                for inter_tensor in intermediate_layers:  # get gradients for intermediate layers for current timestep
-                    gradients_per_layer.append(tf.gradients(output_tensor_timesteps, inter_tensor)[0])
-
-                input = features[:,i,:,:]  # input for current timestep 
-                input = input.reshape(1, *input.shape)  # fit shape to models expectated input shape
-                feed_dict = {
-                    inputs['input']: input,
-                    inputs['input_lengths']: [1],
-                    inputs['previous_state_c']: previous_state_c,
-                    inputs['previous_state_h']: previous_state_h,
-                }
-
-                scores_for_timestep, _ = inter_intgrads(input, riemann_steps, feed_dict, inputs['input'],
-                                                    intermediate_layers, gradients_per_layer, session)
-
-                scores.append(scores_for_timestep)
-
-                # n_same_targets = 0
-                
+            gradients_for_all_layers = []
+            # Get gradient graphs for all interm. layers: output with respect interm layer
+            for inter_tensor in intermediate_layers:
+                gradients_for_all_layers.append(tf.gradients(tf.reduce_sum(output_tensor, axis=0), inter_tensor)[0])
             
-            scores = np.array(scores).squeeze()
+            feed_dict = {
+                inputs['input']: avg_features,
+                inputs['input_lengths']: [1],
+                inputs['previous_state_c']: previous_state_c,
+                inputs['previous_state_h']: previous_state_h,
+            }
+
+            # Computing importance scores for current X
+            layer_scores, input_activations = inter_intgrads(
+                        input_value=np.array(avg_features),
+                        reference_value=np.array(np.zeros_like(avg_features)),
+                        grads_and_activation_func=None,
+                        n=riemann_steps,
+                        feed_dict=feed_dict,
+                        input_tensor=inputs['input'],
+                        inter_tensor=intermediate_layers,
+                        gradients=gradients_for_all_layers,
+                        session=session)
+
             # Save neuron importance scores to file
-            save_to_path_scores = '{}/imp_scores_per_timestep/{}.npy'.format(output_dir, file_name[:-4])
-            write_numpy_to_file(save_to_path_scores, scores)
+            save_to_path_scores = '{}/imp_scores_avg_inputs/{}.npy'.format(output_dir, file_name[:-4])
+            write_numpy_to_file(save_to_path_scores, layer_scores)
             print('Layer scores for {} are saved to: {}'.format(file_name, save_to_path_scores))
-            
-            # Save activations of actual input
-            # save_to_path_activations = '{}/activations/full_model/{}.npy'.format(output_dir, file_name[:-4])
-            # write_numpy_to_file(save_to_path_activations, np.array(input_activations))
-            # print('Activations for {} are saved to: {}'.format(file_name, save_to_path_activations))
 
     return True
 
