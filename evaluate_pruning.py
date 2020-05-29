@@ -65,8 +65,16 @@ def main(_):
 
     # Prune and evaluate on all pertubed sets combined
     evaluation = {}
-    file_info = [common_voice_info[name] for name in 
-        [item['path'][:-4] for item in [set['set_items'] for set in pertubed_sets]]]
+
+    file_info = []
+    for set in pertubed_sets:
+        for item in set['set_items']:
+            filename = item['path'][:-4]
+            file_info.append(common_voice_info[filename])
+
+    # file_info = [common_voice_info[name] for name in [item['path'][:-4] 
+    #             for item in [set['set_items'] for set in pertubed_sets]]]
+
     for percent in percents:
         pruned_results, random_results = evaluate(
             scores_path='./results/activations_combined.npy', prune_percent=percent,
