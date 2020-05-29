@@ -69,13 +69,14 @@ def main(_):
 
     file_info = []
     for set in pertubed_sets:
+        if str(set['set_id']) in train_sets: continue
         for item in set['set_items']:
-            if set['set_id'] in train_sets: continue
             filename = item['path'][:-4]
             file_info.append(common_voice_info[filename])
 
     print('{} test files found...'.format(len(file_info)))
 
+    
     # Clean up characters in case they are in the transcript
     not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
     for info in file_info:
@@ -98,7 +99,7 @@ def main(_):
     # Prune and evaluate per pertubed set
     evaluation = {}
     for set in pertubed_sets:
-        if set['set_id'] in train_sets: continue
+        if str(set['set_id']) in train_sets: continue
         file_info = [common_voice_info[name] for name in [item['path'][:-4] for item in set]]
         for percent in percents:
             pruned_results, random_results = evaluate(
