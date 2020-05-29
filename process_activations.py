@@ -15,7 +15,7 @@ for set in os.listdir('./results/activations/')[0:-40]:
     
     averaged_set_activations = None
     try:
-        averaged_set_activations = np.load('{}/activations_{}'.format(result_dir, set))
+        averaged_set_activations = np.load('{}/activations_{}.npy'.format(result_dir, set))
         print('Set {} was already processed...'.format(set))
     except Exception as e:
         print(e)
