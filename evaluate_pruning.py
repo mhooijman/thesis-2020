@@ -31,6 +31,8 @@ def evaluate(scores_path, prune_percent, evaluate_files):
         'wer': float(wer), 'cer': float(cer), 'mean_loss': float(mean_loss)
     }
 
+    print(evaluation_result)
+
     if prune_percent:
         # Evaluate random
         wer, cer, mean_loss = evaluate_with_pruning(test_csvs=csv_file_path, 
@@ -106,6 +108,7 @@ def main(_):
     # json.dump(evaluation, open('./results/evaluation_per_pertubed_set.json', 'w+'))
 
 
+    percents = [.1]
     # Prune and evaluate on original test set
     print('Evaluating pruning on original test set')
     file_info = get_file_info('./data/librivox-test-clean.csv')
