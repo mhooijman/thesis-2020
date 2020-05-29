@@ -59,8 +59,7 @@ def main(_):
 
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
-    percents = [0, .05. .1, .2]
-    # percents = [0, .2]
+    percents = [0, .05, .1, .2]
 
 
     # Prune and evaluate on all pertubed sets combined
