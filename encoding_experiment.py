@@ -38,11 +38,11 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
             if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
             activations_per_layer[layer_name].append(l2_activations)
 
-for name, activations in activations_per_layer.items():
-    print('Training Logistic Regression classifier for {} activations'.format(name))
-    X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
-    classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
-    print('Accuracy for layer {}: {}'.format(name, classifier.score(X_test, y_test)))
+    for name, activations in activations_per_layer.items():
+        print('Training Logistic Regression classifier for {} activations'.format(name))
+        X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
+        classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
+        print('Accuracy for layer {}: {}'.format(name, classifier.score(X_test, y_test)))
 
 
 def main():
