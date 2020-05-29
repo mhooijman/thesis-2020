@@ -1,5 +1,11 @@
 import json
 from sox import Transformer
+import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+import pandas
+import unicodedata
 
 
 data_dir = './data'
@@ -51,7 +57,7 @@ if not os.path.exists(target_dir):
 files = []
 SAMPLE_RATE = 16000
 for set in selection:
-    for item in set:
+    for item in set['set_items']:
         filename =  source_dir + '/' + item['path']
         transcript = item['sentence']
         transcript = unicodedata.normalize('NFKD', transcript)  \
