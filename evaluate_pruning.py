@@ -60,57 +60,45 @@ def main(_):
     # - files used for pruning (per set prune or total prune)
     # - original test set for model
 
-    # pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
-    # train_sets = json.load(open('./results/set_ids_used.json'))
-    # common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
-    percents = [0, .05, .1, .2]
+    pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
+    train_sets = json.load(open('./results/set_ids_used.json'))
+    common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
+    # percents = [0, .05, .1, .2]
+    
+    
+    file_info = []
+    for set in pertubed_sets:
+        if str(set['set_id']) in train_sets: continue
+        for item in set['set_items']:
+            filename = item['path'][:-4]
+            file_info.append(common_voice_info[filename])
 
-    # file_info = []
-    # for set in pertubed_sets:
-    #     if str(set['set_id']) in train_sets: continue
-    #     for item in set['set_items']:
-    #         filename = item['path'][:-4]
-    #         file_info.append(common_voice_info[filename])
+    print('{} test files found...'.format(len(file_info)))
 
-    # print('{} test files found...'.format(len(file_info)))
-
-    # # Clean up characters in case they are in the transcript
-    # not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
-    # for info in file_info:
-    #     if any(c in info['transcript'] for c in not_allowed):
-    #         for c in not_allowed:
-    #             info['transcript'] = info['transcript'].replace(c, '')
+    # Clean up characters in case they are in the transcript
+    not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
+    for info in file_info:
+        if any(c in info['transcript'] for c in not_allowed):
+            for c in not_allowed:
+                info['transcript'] = info['transcript'].replace(c, '')
 
     
-    # # Prune on all pertubed sets combined and evaluate on test set
-    # evaluation = {}
-    # for percent in percents:
-    #     results = evaluate(
-    #         scores_path='./results/activations_combined.npy', prune_percent=percent,
-    #                                                                 evaluate_files=file_info)
-    #     evaluation['{}'.format(percent)] = results
-    #     print(results)
-    # json.dump(evaluation, open('./results/evaluations_all_pertubated_sets.json', 'w+'))
+    # Prune on all pertubed sets combined and evaluate on test set
+    print('Evaluating pruning on original test set')
+    percents = [.15]
+    evaluation = {}
+    for percent in percents:
+        results = evaluate(
+            scores_path='./results/activations_combined.npy', prune_percent=percent,
+                                                                    evaluate_files=file_info)
+        evaluation['{}'.format(percent)] = results
+        print(results)
+    json.dump(evaluation, open('./results/evaluations_all_pertubated_sets.json', 'w+'))
 
 
-    # # Prune and evaluate per pertubed set
-    # evaluation = {}
-    # for set in pertubed_sets:
-    #     if str(set['set_id']) in train_sets: continue
-    #     file_info = [common_voice_info[name] for name in [item['path'][:-4] for item in set['set_items']]
-    #     for percent in percents:
-    #         results = evaluate(
-    #             scores_path='./results/activations_combined_sets/activations_set_{}.npy'.format(set['set_id']),
-    #                                         prune_percent=percent, evaluate_files=file_info)
-
-    #         evaluation['{}-{}'.format(set['set_id'], percent)] = results
-    #         print(results)
-    # json.dump(evaluation, open('./results/evaluation_per_pertubed_set.json', 'w+'))
-
-
-    percents = [.1]
     # Prune and evaluate on original test set
     print('Evaluating pruning on original test set')
+    percents = [.15, .2]
     file_info = get_file_info('./data/librivox-test-clean.csv')
     evaluation = {}
     for percent in percents:
