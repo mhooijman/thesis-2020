@@ -80,18 +80,14 @@ def main():
     results_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
-    # Encoding experiment of gender on 0.1 pruned model activations
-    activations_dir = './results/activations/pruned-10.0-random'
-    results_random_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
-
     total_results = {
         'full': results_full_model, 
         'imp-score-10': results_pruned_model,
         'random-10': results_random_pruned_model    
     }
-
-    json.dump(open('./results/encoding_experiment_results.json', 'w+'), total_results)
+    
+    json.dump()
+    json.dump(total_results, open('./results/encoding_experiment_results.json', 'w+'))
 
 if __name__ == "__main__":
     main()
