@@ -25,14 +25,10 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
     labels = []
     print('{} sets to process...'.format(len(sets)))
     for set in sets:
-        set_path = '{}/{}'.format(activations_dir, set['set_id'])
-        activation_files = os.listdir(set_path)
-        print('{} files to load.'.format(len(activation_files)))
-        for f in activation_files:
-            if not f.endswith('.npy'): continue
-            print(f)
-            data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], f)))
-            labels.append(speakers_data[f.split('-')[0]])
+        for item in set['set_items']:
+            print(item['path'])
+            data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], item['path'])))
+            labels.append(item['gender']])
         
     print('{} files found'.format(len(data)))
 
@@ -62,7 +58,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
 
 def main():
-    speaker_data = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
+    # speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
