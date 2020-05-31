@@ -215,7 +215,7 @@ def activations_libri_speech_test_set(input_dir, output_dir, test_only=False, pr
                 continue
             print('current file: {}'.format(file_name))
 
-            input_file_path = '{}/{}.wav'.format(input_dir, file_name)
+            input_file_path = '{}/{}'.format(input_dir, file_name)
 
             # Prepare features
             features, features_len = audiofile_to_features(input_file_path)
