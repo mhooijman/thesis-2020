@@ -37,6 +37,8 @@ def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_perc
     if not prune_percentage: base_path = '{}/activations'.format(output_dir)
     else: base_path = '{}/activations/pruned-{}'.format(output_dir, prune_percentage*100)
     if random: base_path += '-random'
+
+    print(base_path)
     
     with tfv1.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
