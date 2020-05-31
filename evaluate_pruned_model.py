@@ -28,7 +28,7 @@ from util.logging import log_error, log_progress, create_progressbar
 from evaluate import sparse_tensor_value_to_texts, sparse_tuple_to_texts
 
 
-numpy.random.seed(1203)
+np.random.seed(1203)
 
 def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True, skip_lstm=False):
     '''Returns a matrix with ones and zeros for each layers
