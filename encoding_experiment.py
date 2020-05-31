@@ -79,6 +79,11 @@ def main():
     results_pruned_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
+    # Encoding experiment of gender on 0.1 pruned model activations of common voice
+    activations_dir = './results/activations/pruned-10.0-random'
+    results_random_pruned_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
+                    activations_dir=activations_dir, speakers_data=None)
+
     # Encoding experiment of gender on full model activations of librispeech
     activations_dir = './results/libri/activations'
     results_full_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
@@ -89,15 +94,22 @@ def main():
     results_pruned_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
+    # Encoding experiment of gender on 0.1 pruned model activations of librispeech
+    activations_dir = './results/libri/activations/pruned-10.0-random'
+    results_random_pruned_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
+                    activations_dir=activations_dir, speakers_data=None)
+
 
     total_results = {
         'common_voice': {
             'full': results_full_model_common, 
-            'imp-score-10': results_pruned_model_common
+            'imp-score-10': results_pruned_model_common,
+            'random-10': results_random_pruned_model_common
         },
         'libri_speech': {
             'full': results_full_model_libri,
-            'imp-score-10': results_pruned_model_libri
+            'imp-score-10': results_pruned_model_libri,
+            'random-10': results_random_pruned_model_libri
         }
     }
     
