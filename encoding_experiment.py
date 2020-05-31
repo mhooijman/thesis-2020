@@ -64,24 +64,41 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
 
 def main():
-    # speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
+    speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
 
-    # Encoding experiment of gender on full model activations
+    # Encoding experiment of gender on full model activations of common voice
     activations_dir = './results/activations'
-    results_full_model = do_gender_encoding_experiment(sets=sets_to_use, 
+    results_full_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
-    # Encoding experiment of gender on 0.1 pruned model activations
+    # Encoding experiment of gender on 0.1 pruned model activations of common voice
     activations_dir = './results/activations/pruned-10.0'
-    results_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
+    results_pruned_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
+
+    # Encoding experiment of gender on full model activations of librispeech
+    activations_dir = './results/libri/activations'
+    results_full_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
+                    activations_dir=activations_dir, speakers_data=None)
+
+    # Encoding experiment of gender on 0.1 pruned model activations of librispeech
+    activations_dir = './results/libri/activations/pruned-10.0'
+    results_pruned_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
+                    activations_dir=activations_dir, speakers_data=None)
+
 
     total_results = {
-        'full': results_full_model, 
-        'imp-score-10': results_pruned_model
+        'common_voice': {
+            'full': results_full_model_common, 
+            'imp-score-10': results_pruned_model_common
+        },
+        'libri_speech': {
+            'full': results_full_model_libri,
+            'imp-score-10': results_pruned_model_libri
+        }
     }
     
     json.dump(total_results, open('./results/encoding_experiment_results.json', 'w+'))

@@ -152,11 +152,19 @@ def main(_):
     #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
     #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
-    # Obtain activations for non-training sets with random pruning
-    activations_pertubed_sets(
-        input_dir=input_dir, output_dir=output_dir, test_only=True, prune_percentage=.1, 
-                        scores_file='./results/activations_combined.npy', random=True)
 
+    input_dir = './data/LibriSpeech/test-clean-wav'
+    output_dir = './results/libri'
+
+    # Obtain activations for all sets without pruning
+    activations_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
+
+    # Obtain activations for non-training sets with pruning
+    activations_pertubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    
 
 
 if __name__ == "__main__":
