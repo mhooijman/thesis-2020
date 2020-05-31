@@ -28,7 +28,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
         for item in set['set_items']:
             print(item['path'])
             data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], item['path'])))
-            labels.append(item['gender']])
+            labels.append(item['gender'])
         
     print('{} files found'.format(len(data)))
 
