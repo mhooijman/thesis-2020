@@ -62,9 +62,8 @@ def main():
     # speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
-    print(len(train_sets))
     sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
-    print(len(sets_to_use))
+    print(train_sets[0])
     import sys
     sys.exit()
     # Encoding experiment of gender on full model activations
