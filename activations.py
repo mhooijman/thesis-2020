@@ -261,7 +261,6 @@ def main(_):
 
 
     input_dir = './data/LibriSpeech/test-clean-wav'
-    output_dir = './results/libri'
 
     # Obtain activations for all sets without pruning of librispeech validation set
     activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir)
