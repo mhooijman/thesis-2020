@@ -3,6 +3,7 @@ import json
 import csv
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 from nltk.tokenize import word_tokenize
 
@@ -49,6 +50,11 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
     for name, activations in activations_per_layer.items():
         print('Training Logistic Regression classifier for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
+
+        scaler = StandardScaler().fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
+
         classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
