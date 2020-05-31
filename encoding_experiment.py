@@ -32,7 +32,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
             if not f.endswith('.npy'): continue
             print(f)
             data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], f)))
-            labels.append(speakers_data[f.split('-')[]])
+            labels.append(speakers_data[f.split('-')[0]])
         
     print('{} files found'.format(len(data)))
 
