@@ -24,7 +24,7 @@ from util.feeding import audiofile_to_features
 import numpy as np
 
 
-def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, verbose=True):
+def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, random=False, verbose=True):
     '''Obtains activations for wavs in input_dir and saves them to output_dir'''
     inputs, outputs, layers = create_inference_graph(batch_size=1, n_steps=-1)
     intermediate_layer_names = ['layer_1', 'layer_2', 'layer_3', 'rnn_output', 'layer_4', 'layer_5']
@@ -36,7 +36,9 @@ def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_perc
     
     if not prune_percentage: base_path = '{}/activations'.format(output_dir)
     else: base_path = '{}/activations/pruned-{}'.format(output_dir, prune_percentage*100)
+    if random: base_path += '-random'
 
+    print(base_path)
     
     with tfv1.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
@@ -61,7 +63,7 @@ def activations_pertubed_sets(input_dir, output_dir, test_only=False, prune_perc
             if verbose: print('-'*80)
             if verbose: print('pruning with {}%...'.format(prune_percentage))
             scores_per_layer = np.load(scores_file)
-            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=False, verbose=verbose, skip_lstm=False)
+            layer_masks = prune_matrices(scores_per_layer, prune_percentage=prune_percentage, random=random, verbose=verbose, skip_lstm=False)
 
             n_layers_to_prune = len(layer_masks)
             i=0
@@ -145,10 +147,15 @@ def main(_):
     # # Obtain activations for all sets without pruning
     # activations_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
 
-    # Obtain activations for non-training sets with pruning
+    # # Obtain activations for non-training sets with pruning
+    # activations_pertubed_sets(
+    #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
+    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    # Obtain activations for non-training sets with random pruning
     activations_pertubed_sets(
-        input_dir=input_dir, output_dir=output_dir, test_only=True, 
-        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+        input_dir=input_dir, output_dir=output_dir, test_only=True, prune_percentage=.1, 
+                        scores_file='./results/activations_combined.npy', random=True)
 
 
 
