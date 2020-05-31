@@ -23,7 +23,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
     data = []
     labels = []
-    print('{} sets to process...'.format(sets))
+    print('{} sets to process...'.format(len(sets)))
     for set in sets:
         set_path = '{}/{}'.format(activations_dir, set['set_id'])
         activation_files = os.listdir(set_path)
