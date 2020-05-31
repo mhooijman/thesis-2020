@@ -31,9 +31,10 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
     labels = [speakers_data[i.split('-')[0]] for i in os.listdir(activations_dir)]
 
     activations_per_layer = {}
+    results = {}
     for item in data:
         for i, layer_act in enumerate(item):
-            
+            if i/20 in range(40): print('Working on {}th input...'.format(i))
             # Average activations over timesteps and L2 normalize
             mean_activations = np.mean(layer_act, axis=0)
             l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
@@ -46,7 +47,12 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
         print('Training Logistic Regression classifier for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
         classifier = LogisticRegressionCV(Cs=5, random_state=random_state).fit(X_train, y_train)
-        print('Accuracy for layer {}: {}'.format(name, classifier.score(X_test, y_test)))
+        test_accuracy = classifier.score(X_test, y_test)
+        print('Accuracy for layer {}: {}'.format(name, test_accuracy))
+
+        results[name] = test_accuracy
+
+    return results
 
 
 def main():
@@ -57,13 +63,26 @@ def main():
 
     # Encoding experiment of gender on full model activations
     activations_dir = './results/activations'
-    do_gender_encoding_experiment(sets=sets_to_use, 
+    results_full_model = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=speaker_data)
 
     # Encoding experiment of gender on 0.1 pruned model activations
     activations_dir = './results/activations/pruned-10'
-    do_gender_encoding_experiment(sets=sets_to_use, 
+    results_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=speaker_data)
+
+    # Encoding experiment of gender on 0.1 pruned model activations
+    activations_dir = './results/activations/pruned-10-random'
+    results_random_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
+                    activations_dir=activations_dir, speakers_data=speaker_data)
+
+    total_results = {
+        'full': results_full_model, 
+        'imp-score-10': results_pruned_model,
+        'random-10': results_random_pruned_model    
+    }
+
+    json.dump(open('./results/encoding_experiment_results.json', 'w+'), total_results)
 
 if __name__ == "__main__":
     main()

@@ -63,7 +63,7 @@ def main(_):
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     common_voice_info = get_file_info('./data/common-voice-pertubed_sets.csv')
-    # percents = [0, .05, .1, .2]
+    percents = [0, .05, .1, .2]
     
     
     file_info = []
@@ -84,8 +84,7 @@ def main(_):
 
     
     # Prune on all pertubed sets combined and evaluate on test set
-    print('Evaluating pruning on original test set')
-    percents = [.15]
+    print('Evaluating pruning on common voice test set')
     evaluation = {}
     for percent in percents:
         results = evaluate(
@@ -98,7 +97,6 @@ def main(_):
 
     # Prune and evaluate on original test set
     print('Evaluating pruning on original test set')
-    percents = [.15, .2]
     file_info = get_file_info('./data/librivox-test-clean.csv')
     evaluation = {}
     for percent in percents:
