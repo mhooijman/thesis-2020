@@ -254,6 +254,11 @@ def main(_):
     #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
     #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
+    # # Obtain activations for non-training sets with pruning of common voice test set
+    # activations_peractivations_common_voice_pertubed_setstubed_sets(
+    #     input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
+    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
 
     input_dir = './data/LibriSpeech/test-clean-wav'
     output_dir = './results/libri'
@@ -264,6 +269,11 @@ def main(_):
     # Obtain activations for non-training sets with pruning of librispeech validation set
     activations_libri_speech_test_set(
         input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    # Obtain activations for non-training sets with random pruning of librispeech validation set
+    activations_libri_speech_test_set(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
         prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
     
