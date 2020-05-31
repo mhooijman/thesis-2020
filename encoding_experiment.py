@@ -63,10 +63,10 @@ def main():
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     print(len(train_sets))
+    sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
+    print(len(sets_to_use))
     import sys
     sys.exit()
-    sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
-
     # Encoding experiment of gender on full model activations
     activations_dir = './results/activations'
     results_full_model = do_gender_encoding_experiment(sets=sets_to_use, 
