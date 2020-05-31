@@ -57,7 +57,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
 def main():
     # speaker_data = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
-    speaker_Data = []
+    speaker_data = []
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
