@@ -76,12 +76,12 @@ def main():
                     activations_dir=activations_dir, speakers_data=None)
 
     # Encoding experiment of gender on 0.1 pruned model activations
-    activations_dir = './results/activations/pruned-10'
+    activations_dir = './results/activations/pruned-10.0'
     results_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
     # Encoding experiment of gender on 0.1 pruned model activations
-    activations_dir = './results/activations/pruned-10-random'
+    activations_dir = './results/activations/pruned-10.0-random'
     results_random_pruned_model = do_gender_encoding_experiment(sets=sets_to_use, 
                     activations_dir=activations_dir, speakers_data=None)
 
