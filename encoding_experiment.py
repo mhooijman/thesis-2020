@@ -9,22 +9,29 @@ from nltk.tokenize import word_tokenize
 
 random_state = 1203
 
-# def prepare_speaker_data(file_path):
-#     speakers = open(file_path, 'r')
+def prepare_speaker_data(file_path):
+    speakers = open(file_path, 'r')
     
-#     speakers_data = {
-#         l.split('|')[0].strip(): l.split('|')[1].strip() 
-#         for l in speakers.readlines() if not l.startswith(';')
-#                                             and l.split('|')[2].strip() == 'test-clean'}
+    speakers_data = {
+        l.split('|')[0].strip(): l.split('|')[1].strip() 
+        for l in speakers.readlines() if not l.startswith(';')
+                                            and l.split('|')[2].strip() == 'test-clean'}
     
-#     return speakers_data
+    return speakers_data
 
 def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
     data = []
     for set in sets:
-        activation_files = os.listdir('{}/{}'.format(activations_dir, set['set_id']))
-        data += [np.load(open('{}/{}/{}'.format(activations_dir, set['set_id'], f), 'r')) for f in activation_files if f.endswith('.npy')]
+        set_path = '{}/{}'.format(activations_dir, set['set_id'])
+        activation_files = os.listdir(set_path)
+        for file_name in [f for f in activation_files if f.endswith('.npy'):
+            file_path = '{}/{}'.format(set_path, file_name)
+            print(file_path)
+            data.append(np.load(open(file_path)))
+    
+
+        # data += [np.load(open('{}/{}/{}'.format(activations_dir, set['set_id'], f), 'r')) for f in activation_files if f.endswith('.npy')]
         
     print('{} files found'.format(len(data)))
 
@@ -56,8 +63,7 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
 
 def main():
-    # speaker_data = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
-    speaker_data = []
+    speaker_data = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
     pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if set['set_id'] not in train_sets]
