@@ -24,8 +24,9 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
     data = []
     for set in sets:
         set_path = '{}/{}'.format(activations_dir, set['set_id'])
-        activation_files = os.listdir(set_path)
-        for f in [f for f in activation_files if f.endswith('.npy')]:
+        activation_files = [f for f in os.listdir(set_path) if f.endswith('.npy')]
+        print('{} files to load.'.format(len(activation_files)))
+        for f in activation_files:
             print(f)
             data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], f)))
 
