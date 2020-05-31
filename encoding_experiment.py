@@ -22,19 +22,19 @@ def prepare_speaker_data(file_path):
 def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
     data = []
+    labels = []
+    print('{} sets to process...'.format(sets))
     for set in sets:
         set_path = '{}/{}'.format(activations_dir, set['set_id'])
-        activation_files = [f for f in os.listdir(set_path) if f.endswith('.npy')]
+        activation_files = os.listdir(set_path)
         print('{} files to load.'.format(len(activation_files)))
         for f in activation_files:
+            if not f.endswith('.npy'): continue
             print(f)
             data.append(np.load('{}/{}/{}'.format(activations_dir, set['set_id'], f)))
-
-        # data += [np.load('{}/{}/{}'.format(activations_dir, set['set_id'], f)) for f in activation_files if f.endswith('.npy')]
+            labels.append(speakers_data[f.split('-')[]])
         
     print('{} files found'.format(len(data)))
-
-    labels = [speakers_data[i.split('-')[0]] for i in os.listdir(activations_dir)]
 
     activations_per_layer = {}
     results = {}
