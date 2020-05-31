@@ -38,7 +38,6 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
     results = {}
     for item in data:
         for i, layer_act in enumerate(item):
-            if i/20 in range(40): print('Working on {}th input...'.format(i))
             # Average activations over timesteps and L2 normalize
             mean_activations = np.mean(layer_act, axis=0)
             l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
@@ -82,8 +81,7 @@ def main():
 
     total_results = {
         'full': results_full_model, 
-        'imp-score-10': results_pruned_model,
-        'random-10': results_random_pruned_model    
+        'imp-score-10': results_pruned_model
     }
     
     json.dump()
