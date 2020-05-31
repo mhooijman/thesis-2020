@@ -84,7 +84,6 @@ def main():
         'imp-score-10': results_pruned_model
     }
     
-    json.dump()
     json.dump(total_results, open('./results/encoding_experiment_results.json', 'w+'))
 
 if __name__ == "__main__":
