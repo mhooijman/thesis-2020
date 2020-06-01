@@ -144,7 +144,7 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
 
-        classifier = LogisticRegressionCV(Cs=5, max_iter=500, random_state=random_state).fit(X_train, y_train)
+        classifier = LogisticRegressionCV(Cs=5, max_iter=2000, random_state=random_state).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
