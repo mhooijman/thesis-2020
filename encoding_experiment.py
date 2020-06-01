@@ -70,6 +70,7 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     for file in files:
         path = file[:-4]
         print(path)
+        if path == '2961-961-0022': continue
         item = np.load('{}/{}.npy'.format(activations_dir, path))
         for i, layer_act in enumerate(item):
             # Average activations over timesteps and L2 normalize
