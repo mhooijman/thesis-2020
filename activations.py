@@ -208,9 +208,9 @@ def activations_libri_speech_test_set(input_dir, output_dir, test_only=False, pr
 
             # Only process files that are not yet available in results directory
             create_dir_if_not_exists(base_path)  # Check if directory exists
-            files_done = [f for f in os.listdir(base_path) if f.endswith('.npy')]
+            files_done = [f[:-4] for f in os.listdir(base_path) if f.endswith('.npy')]
 
-            if file_name in files_done: 
+            if file_name[:-4] in files_done: 
                 print('Skipped.')
                 continue
             print('current file: {}'.format(file_name))
