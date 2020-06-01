@@ -184,12 +184,10 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         labels.append(str(len(sentence_data[path].split(' '))))
 
     counter = {}
-    for label in labels:
-        if label not in counter: counter[int(label)]=1
-        else: counter[int(label)]+=1
+    for label in set(labels):
+        counter[label] = labels.count(label)
 
-    label_count_sorted = {k: v for k, v in sorted(counter.items(), key=lambda item: item[1])}
-    print(label_count_sorted)
+    print(counter)
 
     import sys
     sys.exit(1)
