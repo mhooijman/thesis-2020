@@ -187,7 +187,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     for label in set(labels):
         counter[label] = labels.count(label)
 
-    print(dict(sorted(counter.items(), key=lambda kv: kv[1], reverse=True)))
+    print(dict(sorted(counter.items(), key=lambda kv: kv[1], reverse=False)))
 
     import sys
     sys.exit(1)
