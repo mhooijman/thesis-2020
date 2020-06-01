@@ -106,24 +106,24 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
 
 def main():
     speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
-    pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
-    train_sets = json.load(open('./results/set_ids_used.json'))
-    sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
+    # pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
+    # train_sets = json.load(open('./results/set_ids_used.json'))
+    # sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
 
-    # Encoding experiment of gender on full model activations of common voice
-    activations_dir = './results/activations'
-    results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on full model activations of common voice
+    # activations_dir = './results/activations'
+    # results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of common voice
-    activations_dir = './results/activations/pruned-10.0'
-    results_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on 0.1 pruned model activations of common voice
+    # activations_dir = './results/activations/pruned-10.0'
+    # results_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of common voice
-    activations_dir = './results/activations/pruned-10.0-random'
-    results_random_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on 0.1 pruned model activations of common voice
+    # activations_dir = './results/activations/pruned-10.0-random'
+    # results_random_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
     # Encoding experiment of gender on full model activations of librispeech
     activations_dir = './results/activations/libri'
