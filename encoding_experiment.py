@@ -20,7 +20,7 @@ def prepare_speaker_data(file_path):
     
     return speakers_data
 
-def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
+def do_gender_encoding_experiment_common_voice(sets, activations_dir):
 
     data = []
     labels = []
@@ -62,6 +62,47 @@ def do_gender_encoding_experiment(sets, activations_dir, speakers_data):
 
     return results
 
+def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
+    data = []
+    labels = []
+
+    files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
+    for file in files:
+        path = file[:-4]
+        print(path)
+        data.append(np.load('{}/{}.npy'.format(activations_dir, path)))
+        labels.append(speakers_data[path])
+        
+    print('{} files found'.format(len(data)))
+
+    activations_per_layer = {}
+    results = {}
+    for item in data:
+        for i, layer_act in enumerate(item):
+            # Average activations over timesteps and L2 normalize
+            mean_activations = np.mean(layer_act, axis=0)
+            l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
+
+            layer_name = 'layer_{}'.format(i)
+            if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
+            activations_per_layer[layer_name].append(l2_activations)
+
+    for name, activations in activations_per_layer.items():
+        print('Training Logistic Regression classifier for {} activations'.format(name))
+        X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
+
+        scaler = StandardScaler().fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        classifier = LogisticRegressionCV(Cs=5, max_iter=500, random_state=random_state).fit(X_train, y_train)
+        test_accuracy = classifier.score(X_test, y_test)
+        print('Accuracy for layer {}: {}'.format(name, test_accuracy))
+
+        results[name] = test_accuracy
+
+    return results
+
 
 def main():
     speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
@@ -71,33 +112,33 @@ def main():
 
     # Encoding experiment of gender on full model activations of common voice
     activations_dir = './results/activations'
-    results_full_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+                    activations_dir=activations_dir)
 
     # Encoding experiment of gender on 0.1 pruned model activations of common voice
     activations_dir = './results/activations/pruned-10.0'
-    results_pruned_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+                    activations_dir=activations_dir)
 
     # Encoding experiment of gender on 0.1 pruned model activations of common voice
     activations_dir = './results/activations/pruned-10.0-random'
-    results_random_pruned_model_common = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_random_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+                    activations_dir=activations_dir)
 
     # Encoding experiment of gender on full model activations of librispeech
     activations_dir = './results/libri/activations'
-    results_full_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_full_model_libri = do_gender_encoding_experiment_libri_speech( 
+                    activations_dir=activations_dir, speakers_data=speaker_data_librispeech)
 
     # Encoding experiment of gender on 0.1 pruned model activations of librispeech
     activations_dir = './results/libri/activations/pruned-10.0'
-    results_pruned_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
+                    activations_dir=activations_dir, speakers_data=speaker_data_librispeech)
 
     # Encoding experiment of gender on 0.1 pruned model activations of librispeech
     activations_dir = './results/libri/activations/pruned-10.0-random'
-    results_random_pruned_model_libri = do_gender_encoding_experiment(sets=sets_to_use, 
-                    activations_dir=activations_dir, speakers_data=None)
+    results_random_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
+                    activations_dir=activations_dir, speakers_data=speaker_data_librispeech)
 
 
     total_results = {
