@@ -189,7 +189,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
 
     sorted_counter = sorted(counter, key = counter.get, reverse = True)
     top_10_most_occuring = sorted_counter[:10]
-    print(sorted_counter)
+    print(counter)
     print(top_10_most_occuring)
 
 
