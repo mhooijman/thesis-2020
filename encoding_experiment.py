@@ -126,7 +126,7 @@ def main():
                     activations_dir=activations_dir)
 
     # Encoding experiment of gender on full model activations of librispeech
-    activations_dir = './results/libri/libri/activations'
+    activations_dir = './results/activations/libri'
     results_full_model_libri = do_gender_encoding_experiment_libri_speech( 
                     activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
 
