@@ -118,7 +118,7 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir, s
             not_allowed = [',', '.', '!', '?', '"', '-', ':', ';']
             sentence_clean = item['sentence']
             for c in not_allowed:
-                sentence_clean] = sentence_clean.replace(c, '')
+                sentence_clean = sentence_clean.replace(c, '')
 
             # Use length of tokenized sentence as label (as string, classification not regression)
             labels.append(str(len(word_tokenize(sentence_clean))))
