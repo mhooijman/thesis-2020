@@ -20,7 +20,7 @@ def prepare_speaker_data(file_path):
     return speakers_data
 
 def prepare_sentence_data(file_path):
-    df = pd.DataFrame(filepath)
+    df = pd.DataFrame(file_path)
     sentence_data = {
         r['wav_filename'].split('/')[-1][:-4]:r['transcript'] for i, row in df.iterrows()
     }
