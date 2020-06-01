@@ -83,7 +83,7 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
 
         labels.append(speaker_data[path.split('-')[0]])
         
-    print('{} files found'.format(len(data)))
+    print('{} files found'.format(len(activations_per_layer)))
 
     results = {}
 
