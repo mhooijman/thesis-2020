@@ -104,7 +104,7 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     return results
 
 
-def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir, sentences):
+def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
     data = []
     labels = []
     print('{} sets to process...'.format(len(sets)))
