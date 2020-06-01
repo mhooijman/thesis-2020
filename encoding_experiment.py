@@ -5,7 +5,6 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-from nltk.tokenize import word_tokenize
 
 
 random_state = 1203
@@ -120,8 +119,8 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
             for c in not_allowed:
                 sentence_clean = sentence_clean.replace(c, '')
 
-            # Use length of tokenized sentence as label (as string, classification not regression)
-            labels.append(str(len(word_tokenize(sentence_clean))))
+            # Use length of blank splitted as label (as string, classification not regression)
+            labels.append(str(len(sentence_clean.split(' '))))
         
     print('{} files found'.format(len(data)))
 
