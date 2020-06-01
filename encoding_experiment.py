@@ -187,7 +187,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     for label in labels:
         if label not in counter: counter[label]=1
         else: counter[label]+=1
-    print(sorted(counter))
+    print(sorted(counter.items()))
     import sys
     sys.exit(1)
     print('{} files found'.format(len(activations_per_layer)))
