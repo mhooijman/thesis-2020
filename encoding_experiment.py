@@ -188,7 +188,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         counter[label] = labels.count(label)
 
     sorted_counter = sorted(counter, key = counter.get, reverse = True)
-    top_3 = popular_words[:3]
+    top_3 = sorted_counter[:3]
     print(top_3)
 
 
