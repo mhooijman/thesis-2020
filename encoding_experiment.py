@@ -187,12 +187,10 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     for label in set(labels):
         counter[label] = labels.count(label)
 
-    print(dict(sorted(counter.items(), key=lambda kv: kv[1], reverse=True)))
-    i = 0
-    for label, count in dict(sorted(counter.items(), key=lambda kv: kv[1], reverse=True)).items():
-        print(count)
-        i += 1
-        if i == 10: break
+    sorted_counter = sorted(word_counter, key = counter.get, reverse = True)
+    top_3 = popular_words[:3]
+    print(top_3)
+
 
     import sys
     sys.exit(1)
