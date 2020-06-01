@@ -207,9 +207,9 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
 def main():
     speaker_data_librispeech = prepare_speaker_data('./data/LibriSpeech/SPEAKERS.TXT')
     sentence_data_librispeech = prepare_sentence_data('./data/librivox-test-clean.csv')
-    # pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
-    # train_sets = json.load(open('./results/set_ids_used.json'))
-    # sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
+    pertubed_sets = json.load(open('data/pertubed_input_sets_balanced.json'))
+    train_sets = json.load(open('./results/set_ids_used.json'))
+    sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
 
     # ### Gender encoding experiment ###
 
