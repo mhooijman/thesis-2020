@@ -170,15 +170,15 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         path = file[:-4]
         print(path)
         if path == '2961-961-0022': continue
-        # item = np.load('{}/{}.npy'.format(activations_dir, path))
-        # for i, layer_act in enumerate(item):
-        #     # Average activations over timesteps and L2 normalize
-        #     mean_activations = np.mean(layer_act, axis=0)
-        #     l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
+        item = np.load('{}/{}.npy'.format(activations_dir, path))
+        for i, layer_act in enumerate(item):
+            # Average activations over timesteps and L2 normalize
+            mean_activations = np.mean(layer_act, axis=0)
+            l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
 
-        #     layer_name = 'layer_{}'.format(i)
-        #     if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
-        #     activations_per_layer[layer_name].append(l2_activations)
+            layer_name = 'layer_{}'.format(i)
+            if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
+            activations_per_layer[layer_name].append(l2_activations)
 
         # Use length of blank splitted as label (as string, classification not regression)
         labels.append(str(len(sentence_data[path].split(' '))))
@@ -193,14 +193,10 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     labels_filtered = []
     for i, label in enumerate(labels):
         if label not in top_10_most_occuring_labels: 
-            continue
             for layer in activations_per_layer:
                 del activations_per_layer[layer][i]
         else: labels_filtered.append(label)
     
-    print(len(labels_filtered))
-    import sys
-    sys.exit()
     labels = labels_filtered
     for items in activations_per_layer.values():
         print(len(items))
