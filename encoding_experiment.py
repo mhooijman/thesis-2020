@@ -164,12 +164,19 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
 def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data):
     activations_per_layer = {}
     labels = []
-
+    top_10_labels = ['9', '7', '10', '8', '11', '12', '17', '13', '6', '14']
     files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
     for file in files:
         path = file[:-4]
         print(path)
         if path == '2961-961-0022': continue
+
+        label = str(len(sentence_data[path].split(' ')))
+        if label not in top_10_labels: continue
+        
+        # Use length of blank splitted as label (as string, classification not regression)
+        labels.append(label)
+
         item = np.load('{}/{}.npy'.format(activations_dir, path))
         for i, layer_act in enumerate(item):
             # Average activations over timesteps and L2 normalize
@@ -180,26 +187,14 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
             if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
             activations_per_layer[layer_name].append(l2_activations)
 
-        # Use length of blank splitted as label (as string, classification not regression)
-        labels.append(str(len(sentence_data[path].split(' '))))
 
-    counter = {}
-    for label in set(labels):
-        counter[label] = labels.count(label)
+    # counter = {}
+    # for label in set(labels):
+    #     counter[label] = labels.count(label)
 
-    sorted_counter = sorted(counter, key = counter.get, reverse = True)
-    top_10_most_occuring_labels = sorted_counter[:10]
-    
-    labels_filtered = []
-    for i, label in enumerate(labels):
-        if label not in top_10_most_occuring_labels: 
-            for layer in activations_per_layer:
-                del activations_per_layer[layer][i]
-        else: labels_filtered.append(label)
-    
-    labels = labels_filtered
-    for items in activations_per_layer.values():
-        print(len(items))
+    # sorted_counter = sorted(counter, key = counter.get, reverse = True)
+    # top_10_most_occuring_labels = sorted_counter[:10]
+    # result: ['9', '7', '10', '8', '11', '12', '17', '13', '6', '14']
             
     print('{} files found'.format(len(activations_per_layer)))
 
