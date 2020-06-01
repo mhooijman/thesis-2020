@@ -188,13 +188,23 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         counter[label] = labels.count(label)
 
     sorted_counter = sorted(counter, key = counter.get, reverse = True)
-    top_10_most_occuring = sorted_counter[:10]
-    print(counter)
-    print(top_10_most_occuring)
-
-
+    top_10_most_occuring_labels = sorted_counter[:10]
+    
+    labels_filtered = []
+    for i, label in enumerate(labels):
+        if label not in top_10_most_occuring_labels: 
+            continue
+            for layer in activations_per_layer:
+                del activations_per_layer[layer][i]
+        else: labels_filtered.append(label)
+    
+    print(len(labels_filtered))
     import sys
-    sys.exit(1)
+    sys.exit()
+    labels = labels_filtered
+    for items in activations_per_layer.values():
+        print(len(items))
+            
     print('{} files found'.format(len(activations_per_layer)))
 
     results = {}
