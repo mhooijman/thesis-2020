@@ -140,6 +140,7 @@ def activations_common_voice_pertubed_sets(input_dir, output_dir, test_only=Fals
 
 def activations_libri_speech_test_set(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, random=False, verbose=True):
     '''Obtains activations for wavs in input_dir and saves them to output_dir'''
+    
     inputs, outputs, layers = create_inference_graph(batch_size=1, n_steps=-1)
     intermediate_layer_names = ['layer_1', 'layer_2', 'layer_3', 'rnn_output', 'layer_4', 'layer_5']
     intermediate_layers = [l for n,l in layers.items() if n in intermediate_layer_names]
@@ -244,17 +245,19 @@ def main(_):
     output_dir = './results'
 
     initialize_globals()
-    tfv1.reset_default_graph()
     
     # # Obtain activations for all sets without pruning of common voice test set
+    tfv1.reset_default_graph()
     # activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
 
     # # Obtain activations for non-training sets with pruning of common voice test set
+    tfv1.reset_default_graph()
     # activations_peractivations_common_voice_pertubed_setstubed_sets(
     #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
     #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
     # # Obtain activations for non-training sets with pruning of common voice test set
+    tfv1.reset_default_graph()
     # activations_peractivations_common_voice_pertubed_setstubed_sets(
     #     input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
     #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
@@ -263,14 +266,17 @@ def main(_):
     input_dir = './data/LibriSpeech/test-clean-wav'
 
     # Obtain activations for all sets without pruning of librispeech validation set
+    tfv1.reset_default_graph()
     activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir)
 
     # Obtain activations for non-training sets with pruning of librispeech validation set
+    tfv1.reset_default_graph()
     activations_libri_speech_test_set(
         input_dir=input_dir, output_dir=output_dir, test_only=True, 
         prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
     # Obtain activations for non-training sets with random pruning of librispeech validation set
+    tfv1.reset_default_graph()
     activations_libri_speech_test_set(
         input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
         prune_percentage=.1, scores_file='./results/activations_combined.npy')
