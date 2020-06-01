@@ -63,21 +63,14 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
     return results
 
 def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
-    data = []
+    activations_per_layer = {}
     labels = []
 
     files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
     for file in files:
         path = file[:-4]
         print(path)
-        data.append(np.load('{}/{}.npy'.format(activations_dir, path)))
-        labels.append(speaker_data[path.split('-')[0]])
-        
-    print('{} files found'.format(len(data)))
-
-    activations_per_layer = {}
-    results = {}
-    for item in data:
+        item = np.load('{}/{}.npy'.format(activations_dir, path))
         for i, layer_act in enumerate(item):
             # Average activations over timesteps and L2 normalize
             mean_activations = np.mean(layer_act, axis=0)
@@ -86,6 +79,12 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
             layer_name = 'layer_{}'.format(i)
             if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
             activations_per_layer[layer_name].append(l2_activations)
+
+        labels.append(speaker_data[path.split('-')[0]])
+        
+    print('{} files found'.format(len(data)))
+
+    results = {}
 
     for name, activations in activations_per_layer.items():
         print('Training Logistic Regression classifier for {} activations'.format(name))
