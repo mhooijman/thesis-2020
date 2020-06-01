@@ -71,7 +71,7 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
         path = file[:-4]
         print(path)
         data.append(np.load('{}/{}.npy'.format(activations_dir, path)))
-        labels.append(speakers_data[path])
+        labels.append(speaker_data[path])
         
     print('{} files found'.format(len(data)))
 
