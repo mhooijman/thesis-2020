@@ -55,18 +55,36 @@ rm -rf ./data/LibriSpeech/test-clean
 ```
 
 ## Neuron importance scores
-Run the code for neuron importance scores:
+Run the code for obtaining activations of the Common Voice data on the full model:
 ```
-python neuron_importance_scores.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ./DeepSpeech/data/lm/lm.binary --lm_trie_path ./DeepSpeech/data/lm/trie
+python activations.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ""--lm_trie_path ""
 ```
-Scores for each input are saved to ./results/imp_scores, these results are combined and saved to ./results/final_imp_scores.npy.
+
+The script fails after obtaining activations for the Common Voice data on the full model as the pruning information is not ready. Run the following to compute the importance scores.
+```
+python process_activations.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ""--lm_trie_path ""
+```
+
+And re-run the activations code above. It will automatically skip those activations that are already processed.
 
 ## Evaluation with pruning
-Run the code for evaluation with pruning (standard at .05, .1, .15, .2, .25, .3 pruning ratio).
+Run the code for evaluation with pruning (standard at .05, .1, .2 pruning percentages).
 ```
-python evaluate_pruned_model.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ./DeepSpeech/data/lm/lm.binary --lm_trie_path ./DeepSpeech/data/lm/trie
+python evaluate_pruning.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ""--lm_trie_path ""
 ```
 
+## Encoding experiments
+Run the code for conducting the encoding experiments of gender and sentence length.
+```
+python encoding_experiments.py --checkpoint_dir ./deepspeech-0.6.1-checkpoint --alphabet_config_path ./DeepSpeech/data/alphabet.txt --lm_binary_path ""--lm_trie_path ""
+```
+
+
+## Figures
+Run the code for obtaining figures and additional information (figures are saved to ./figures).
+```
+python plots.py
+```
 
 
 

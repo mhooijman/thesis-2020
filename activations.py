@@ -248,19 +248,19 @@ def main(_):
     
     # # Obtain activations for all sets without pruning of common voice test set
     tfv1.reset_default_graph()
-    # activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
+    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
 
     # # Obtain activations for non-training sets with pruning of common voice test set
     tfv1.reset_default_graph()
-    # activations_peractivations_common_voice_pertubed_setstubed_sets(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+    activations_peractivations_common_voice_pertubed_setstubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
     # # Obtain activations for non-training sets with pruning of common voice test set
     tfv1.reset_default_graph()
-    # activations_peractivations_common_voice_pertubed_setstubed_sets(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+    activations_peractivations_common_voice_pertubed_setstubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
 
     input_dir = './data/LibriSpeech/test-clean-wav'
