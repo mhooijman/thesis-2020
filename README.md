@@ -46,7 +46,7 @@ mkdir CommonVoice
 tar -C ./data/CommonVoice -xf ./data/en.tar.gz && rm -f ./data/en.tar.gz
 python utils/import_common_voice_en_data.py
 rm -rf ./data/CommonVoice/EN/clips # optional to remove unused files
-
+```
 
 Download Librivox data (python file handles already exist check). From the root folder execute:
 ```
