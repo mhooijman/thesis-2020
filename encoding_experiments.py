@@ -162,7 +162,7 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
 def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data):
     activations_per_layer = {}
     labels = []
-    # top_10_labels = [9, 7, 10, 8, 11, 12, 17, 13, 6, 14]
+    top_10_labels = [9, 7, 10, 8, 11, 12, 17, 13, 6, 14]
     files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
     for file in files:
         path = file[:-4]
@@ -170,7 +170,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         if path == '2961-961-0022': continue
 
         label = len(sentence_data[path].split(' '))
-        # if label not in top_10_labels: continue
+        if label not in top_10_labels: continue
         
         # Use length of blank splitted as label
         labels.append(label)
