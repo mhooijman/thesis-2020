@@ -1,7 +1,7 @@
 import os
 import json
 import csv
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -150,7 +150,7 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
 
-        classifier = LogisticRegressionCV(Cs=5, max_iter=2000, random_state=random_state).fit(X_train, y_train)
+        classifier = RidgeCV(Cs=5, max_iter=2000, random_state=random_state).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
@@ -204,7 +204,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
 
-        classifier = LogisticRegressionCV(Cs=5, max_iter=2000, random_state=random_state).fit(X_train, y_train)
+        classifier = RidgeCV(Cs=5, max_iter=2000, random_state=random_state).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
@@ -219,52 +219,52 @@ def main():
     train_sets = json.load(open('./results/set_ids_used.json'))
     sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
 
-    ### Gender encoding experiment ###
+    # ### Gender encoding experiment ###
 
-    # Encoding experiment of gender on full model activations of common voice
-    activations_dir = './results/activations'
-    results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on full model activations of common voice
+    # activations_dir = './results/activations'
+    # results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of common voice
-    activations_dir = './results/activations/pruned-10.0'
-    results_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on 0.1 pruned model activations of common voice
+    # activations_dir = './results/activations/pruned-10.0'
+    # results_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of common voice
-    activations_dir = './results/activations/pruned-10.0-random'
-    results_random_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
-                    activations_dir=activations_dir)
+    # # Encoding experiment of gender on 0.1 pruned model activations of common voice
+    # activations_dir = './results/activations/pruned-10.0-random'
+    # results_random_pruned_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
+    #                 activations_dir=activations_dir)
 
-    # Encoding experiment of gender on full model activations of librispeech
-    activations_dir = './results/activations/libri'
-    results_full_model_libri = do_gender_encoding_experiment_libri_speech( 
-                    activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
+    # # Encoding experiment of gender on full model activations of librispeech
+    # activations_dir = './results/activations/libri'
+    # results_full_model_libri = do_gender_encoding_experiment_libri_speech( 
+    #                 activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of librispeech
-    activations_dir = './results/activations/libri/pruned-10.0'
-    results_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
-                    activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
+    # # Encoding experiment of gender on 0.1 pruned model activations of librispeech
+    # activations_dir = './results/activations/libri/pruned-10.0'
+    # results_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
+    #                 activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
 
-    # Encoding experiment of gender on 0.1 pruned model activations of librispeech
-    activations_dir = './results/activations/libri/pruned-10.0-random'
-    results_random_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
-                    activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
+    # # Encoding experiment of gender on 0.1 pruned model activations of librispeech
+    # activations_dir = './results/activations/libri/pruned-10.0-random'
+    # results_random_pruned_model_libri = do_gender_encoding_experiment_libri_speech(
+    #                 activations_dir=activations_dir, speaker_data=speaker_data_librispeech)
 
-    total_results = {
-        'common_voice': {
-            'full': results_full_model_common, 
-            'imp-score-10': results_pruned_model_common,
-            'random-10': results_random_pruned_model_common
-        },
-        'libri_speech': {
-            'full': results_full_model_libri,
-            'imp-score-10': results_pruned_model_libri,
-            'random-10': results_random_pruned_model_libri
-        }
-    }
+    # total_results = {
+    #     'common_voice': {
+    #         'full': results_full_model_common, 
+    #         'imp-score-10': results_pruned_model_common,
+    #         'random-10': results_random_pruned_model_common
+    #     },
+    #     'libri_speech': {
+    #         'full': results_full_model_libri,
+    #         'imp-score-10': results_pruned_model_libri,
+    #         'random-10': results_random_pruned_model_libri
+    #     }
+    # }
     
-    json.dump(total_results, open('./results/gender_encoding_experiment_results.json', 'w+'))
+    # json.dump(total_results, open('./results/gender_encoding_experiment_results.json', 'w+'))
 
 
 
