@@ -93,7 +93,7 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     results = {}
 
     for name, activations in activations_per_layer.items():
-        print('Training Ridge Regression for {} activations'.format(name))
+        print('Training Logistic Regression classifier for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
 
         scaler = StandardScaler().fit(X_train)
@@ -197,7 +197,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     results = {}
 
     for name, activations in activations_per_layer.items():
-        print('Training Logistic Regression classifier for {} activations'.format(name))
+        print('Training Ridge Regression for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
 
         scaler = StandardScaler().fit(X_train)
