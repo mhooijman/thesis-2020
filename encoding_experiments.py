@@ -126,7 +126,7 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
                 sentence_clean = sentence_clean.replace(c, '')
 
             # Use length of blank splitted as label (as string, classification not regression)
-            labels.append(str(len(sentence_clean.split(' '))))
+            labels.append(len(sentence_clean.split(' ')))
         
     print('{} files found'.format(len(data)))
 
@@ -169,7 +169,7 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
         print(path)
         if path == '2961-961-0022': continue
 
-        label = str(len(sentence_data[path].split(' ')))
+        label = len(sentence_data[path].split(' '))
         if label not in top_10_labels: continue
         
         # Use length of blank splitted as label (as string, classification not regression)
