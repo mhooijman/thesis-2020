@@ -79,7 +79,7 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
 
                 results[name] = test_accuracy
 
-        return results
+    return results
 
 def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     activations_per_layer = {}
