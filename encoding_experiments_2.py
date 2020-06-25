@@ -48,7 +48,7 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
 
     for prune_rate in [0.1, 0.2, 0.5]:
 
-        prune_matrices = prune_matrices(scores, prune_percentage=prune_rate)
+        prune_masks = prune_matrices(scores, prune_percentage=prune_rate)
 
         activations_per_layer = {}
         results = {}
@@ -58,7 +58,7 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
                 mean_activations = np.mean(layer_act, axis=0)
                 l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
 
-                pruned_activations = np.multiply(l2_activations, prune_matrices[i])
+                pruned_activations = np.multiply(l2_activations, prune_masks[i])
 
                 layer_name = 'layer_{}_{}'.format(i, prune_rate)
                 if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
