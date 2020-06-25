@@ -35,7 +35,7 @@ def prune_matrices(input_array, prune_percentage=0, random=False, verbose=True, 
     Supports input to be a numpy array. The layers of the DeepSpeech
     model have an equal number of neurons.'''
 
-    # Calculste total number of neurons
+    # Calculate total number of neurons
     n_neurons_total = 1
     for n in input_array.shape:
       n_neurons_total *= n

@@ -46,39 +46,40 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
 
     scores = np.load('./results/final_imp_scores.npy')
 
-    for prune_rate in [0.1, 0.2, 0.5, 0.9]:
+    for random in [False, True]:
+        for prune_rate in [0.1, 0.2, 0.5, 0.9]:
+            print(prune_rate, random)
+            prune_masks = prune_matrices(scores, prune_percentage=prune_rate, random=random)
 
-        prune_masks = prune_matrices(scores, prune_percentage=prune_rate)
+            activations_per_layer = {}
+            results = {}
+            for item in data:
+                for i, layer_act in enumerate(item):
+                    # Average activations over timesteps and L2 normalize
+                    mean_activations = np.mean(layer_act, axis=0)
+                    l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
 
-        activations_per_layer = {}
-        results = {}
-        for item in data:
-            for i, layer_act in enumerate(item):
-                # Average activations over timesteps and L2 normalize
-                mean_activations = np.mean(layer_act, axis=0)
-                l2_activations = mean_activations / np.sqrt(np.sum(mean_activations**2))
+                    pruned_activations = np.multiply(l2_activations, prune_masks[i])
 
-                pruned_activations = np.multiply(l2_activations, prune_masks[i])
+                    layer_name = 'layer_{}_{}'.format(i, prune_rate)
+                    if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
+                    activations_per_layer[layer_name].append(pruned_activations)
 
-                layer_name = 'layer_{}_{}'.format(i, prune_rate)
-                if layer_name not in activations_per_layer: activations_per_layer[layer_name] = []
-                activations_per_layer[layer_name].append(pruned_activations)
+            for name, activations in activations_per_layer.items():
+                print('Training Logistic Regression classifier for {} activations'.format(name))
+                X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
 
-        for name, activations in activations_per_layer.items():
-            print('Training Logistic Regression classifier for {} activations'.format(name))
-            X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
+                scaler = StandardScaler().fit(X_train)
+                X_train = scaler.transform(X_train)
+                X_test = scaler.transform(X_test)
 
-            scaler = StandardScaler().fit(X_train)
-            X_train = scaler.transform(X_train)
-            X_test = scaler.transform(X_test)
+                classifier = LogisticRegressionCV(Cs=5, max_iter=500, random_state=random_state).fit(X_train, y_train)
+                test_accuracy = classifier.score(X_test, y_test)
+                print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
-            classifier = LogisticRegressionCV(Cs=5, max_iter=500, random_state=random_state).fit(X_train, y_train)
-            test_accuracy = classifier.score(X_test, y_test)
-            print('Accuracy for layer {}: {}'.format(name, test_accuracy))
+                results[name] = test_accuracy
 
-            results[name] = test_accuracy
-
-    return results
+        return results
 
 def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     activations_per_layer = {}
