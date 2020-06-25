@@ -51,9 +51,9 @@ def activations_common_voice_pertubed_sets(input_dir, output_dir, test_only=Fals
         # if not loaded:
         #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
         #     sys.exit(1)
-
-        tfv1.get_default_graph().finalize()
+        
         initializer = tfv1.global_variables_initializer()
+        tfv1.get_default_graph().finalize()
         session.run(initializer)
 
         ###### PRUNING PART ######
