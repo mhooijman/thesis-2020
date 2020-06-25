@@ -46,7 +46,7 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
 
     scores = np.load('./results/final_imp_scores.npy')
 
-    for prune_rate in [0.1, 0.2, 0.5]:
+    for prune_rate in [0.1, 0.2, 0.5, 0.9]:
 
         prune_masks = prune_matrices(scores, prune_percentage=prune_rate)
 
