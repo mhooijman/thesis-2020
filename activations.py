@@ -246,7 +246,7 @@ def main(_):
     output_dir = './results/randomly-initialized'
 
     tfv1.reset_default_graph()
-    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
+    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir, test_only=True)
 
 
     # output_dir = './results'
