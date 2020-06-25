@@ -243,13 +243,12 @@ def activations_libri_speech_test_set(input_dir, output_dir, test_only=False, pr
 
 def main(_):
     initialize_globals()
-    input_dir = './data/CommonVoice/pertubed_sets'
-    
+    # input_dir = './data/CommonVoice/pertubed_sets'
     
     output_dir = './results/randomly-initialized'
 
-    tfv1.reset_default_graph()
-    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir, test_only=True)
+    # tfv1.reset_default_graph()
+    # activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir, test_only=True)
 
 
     # output_dir = './results'
@@ -271,7 +270,10 @@ def main(_):
     #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
 
-    # input_dir = './data/LibriSpeech/test-clean-wav'
+    input_dir = './data/LibriSpeech/test-clean-wav'
+    output_dir = './results/randomly-initialized'
+    tfv1.reset_default_graph()
+    activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir, test_only=True)
 
     # # Obtain activations for all sets without pruning of librispeech validation set
     # tfv1.reset_default_graph()
