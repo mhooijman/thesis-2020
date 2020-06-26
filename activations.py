@@ -24,7 +24,7 @@ from util.feeding import audiofile_to_features
 import numpy as np
 
 
-def activations_common_voice_pertubed_sets(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, random=False, verbose=True):
+def activations_common_voice_pertubed_sets(input_dir, output_dir, test_only=False, prune_percentage=0, scores_file=None, random=False, verbose=True, randomly_initialized=False):
     '''Obtains activations for wavs in input_dir and saves them to output_dir'''
     inputs, outputs, layers = create_inference_graph(batch_size=1, n_steps=-1)
     intermediate_layer_names = ['layer_1', 'layer_2', 'layer_3', 'rnn_output', 'layer_4', 'layer_5']
@@ -40,21 +40,22 @@ def activations_common_voice_pertubed_sets(input_dir, output_dir, test_only=Fals
     
     with tfv1.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
-        # saver = tfv1.train.Saver()
+        
+        if not randomly_initialized:
+            saver = tfv1.train.Saver()
 
-        # # Restore variables from training checkpoint
-        # loaded = False
-        # if not loaded and FLAGS.load in ['auto', 'last']:
-        #     loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
-        # if not loaded and FLAGS.load in ['auto', 'best']:
-        #     loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
-        # if not loaded:
-        #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-        #     sys.exit(1)
-
-        initializer = tfv1.global_variables_initializer()
-        # tfv1.get_default_graph().finalize()
-        session.run(initializer)
+            # Restore variables from training checkpoint
+            loaded = False
+            if not loaded and FLAGS.load in ['auto', 'last']:
+                loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
+            if not loaded and FLAGS.load in ['auto', 'best']:
+                loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
+            if not loaded:
+                print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
+                sys.exit(1)
+        else:
+            initializer = tfv1.global_variables_initializer()
+            session.run(initializer)
 
         ###### PRUNING PART ######
 
@@ -243,53 +244,45 @@ def activations_libri_speech_test_set(input_dir, output_dir, test_only=False, pr
 
 def main(_):
     initialize_globals()
-    # input_dir = './data/CommonVoice/pertubed_sets'
+    input_dir = './data/CommonVoice/pertubed_sets'
     
     output_dir = './results/randomly-initialized'
-
-    # tfv1.reset_default_graph()
-    # activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir, test_only=True)
-
-
-    # output_dir = './results'
-
-    # # Obtain activations for all sets without pruning of common voice test set
-    # tfv1.reset_default_graph()
-    # activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
-
-    # # Obtain activations for non-training sets with pruning of common voice test set
-    # tfv1.reset_default_graph()
-    # activations_peractivations_common_voice_pertubed_setstubed_sets(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
-
-    # # Obtain activations for non-training sets with pruning of common voice test set
-    # tfv1.reset_default_graph()
-    # activations_peractivations_common_voice_pertubed_setstubed_sets(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
-
-
-    input_dir = './data/LibriSpeech/test-clean-wav'
-    output_dir = './results/randomly-initialized'
     tfv1.reset_default_graph()
-    activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir, test_only=True)
+    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir, test_only=True, randomly_initialized=True)
 
-    # # Obtain activations for all sets without pruning of librispeech validation set
-    # tfv1.reset_default_graph()
-    # activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir)
+    output_dir = './results'
 
-    # # Obtain activations for non-training sets with pruning of librispeech validation set
-    # tfv1.reset_default_graph()
-    # activations_libri_speech_test_set(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+    # Obtain activations for all sets without pruning of common voice test set
+    tfv1.reset_default_graph()
+    activations_common_voice_pertubed_sets(input_dir=input_dir, output_dir=output_dir)
 
-    # # Obtain activations for non-training sets with random pruning of librispeech validation set
-    # tfv1.reset_default_graph()
-    # activations_libri_speech_test_set(
-    #     input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
-    #     prune_percentage=.1, scores_file='./results/activations_combined.npy')
+    # Obtain activations for non-training sets with pruning of common voice test set
+    tfv1.reset_default_graph()
+    activations_peractivations_common_voice_pertubed_setstubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    # Obtain activations for non-training sets with pruning of common voice test set
+    tfv1.reset_default_graph()
+    activations_peractivations_common_voice_pertubed_setstubed_sets(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    # Obtain activations for all sets without pruning of librispeech validation set
+    tfv1.reset_default_graph()
+    activations_libri_speech_test_set(input_dir=input_dir, output_dir=output_dir)
+
+    # Obtain activations for non-training sets with pruning of librispeech validation set
+    tfv1.reset_default_graph()
+    activations_libri_speech_test_set(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
+
+    # Obtain activations for non-training sets with random pruning of librispeech validation set
+    tfv1.reset_default_graph()
+    activations_libri_speech_test_set(
+        input_dir=input_dir, output_dir=output_dir, test_only=True, random=True, 
+        prune_percentage=.1, scores_file='./results/activations_combined.npy')
 
     
 
