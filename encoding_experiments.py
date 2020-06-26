@@ -35,7 +35,6 @@ def do_gender_encoding_experiment_common_voice(sets, activations_dir):
     for set in sets:
         for item in set['set_items']:
             path = item['path'][:-4]
-            print(path)
             data.append(np.load('{}/{}/{}.npy'.format(activations_dir, set['set_id'], path)))
             labels.append(item['gender'])
         
@@ -220,11 +219,13 @@ def main():
     sets_to_use = [set for set in pertubed_sets if str(set['set_id']) not in train_sets]
 
 
-    # Encoding experiment of gender on full model activations of common voice
+    # Randomly initialized
     activations_dir = './results/randomly-initialized/activations'
     results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
                     activations_dir=activations_dir)
 
+    results_full_model_common = do_sentence_length_encoding_experiment_common_voice(sets=sets_to_use, 
+                    activations_dir=activations_dir)
 
     ### Gender encoding experiment ###
 
