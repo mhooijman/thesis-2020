@@ -75,7 +75,6 @@ def do_gender_encoding_experiment_libri_speech(speaker_data, activations_dir):
     files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
     for file in files:
         path = file[:-4]
-        print(path)
         if path == '2961-961-0022': continue
         item = np.load('{}/{}.npy'.format(activations_dir, path))
         for i, layer_act in enumerate(item):
@@ -115,7 +114,6 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
     for set in sets:
         for item in set['set_items']:
             path = item['path'][:-4]
-            print(path)
             data.append(np.load('{}/{}/{}.npy'.format(activations_dir, set['set_id'], path)))
 
             # Clean up sentences from punctuation
@@ -165,7 +163,6 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     files = [f for f in os.listdir(activations_dir) if f.endswith('.npy')]
     for file in files:
         path = file[:-4]
-        print(path)
         if path == '2961-961-0022': continue
 
         label = len(sentence_data[path].split(' '))
