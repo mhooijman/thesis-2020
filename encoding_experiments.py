@@ -142,14 +142,14 @@ def do_sentence_length_encoding_experiment_common_voice(sets, activations_dir):
             activations_per_layer[layer_name].append(l2_activations)
 
     for name, activations in activations_per_layer.items():
-        print('Training Ridge Regression model for {} activations'.format(name))
+        print('Training Logistic Regression model for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
 
         scaler = StandardScaler().fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
 
-        classifier = RidgeCV(cv=5).fit(X_train, y_train)
+        classifier = LogisticRegressionCV(cv=5).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
@@ -196,14 +196,14 @@ def do_sentence_encoding_experiment_libri_speech(activations_dir, sentence_data)
     results = {}
 
     for name, activations in activations_per_layer.items():
-        print('Training Ridge Regression for {} activations'.format(name))
+        print('Training Logistic Regression for {} activations'.format(name))
         X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.25, random_state=random_state)
 
         scaler = StandardScaler().fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
 
-        classifier = RidgeCV(cv=5).fit(X_train, y_train)
+        classifier = LogisticRegressionCV(cv=5).fit(X_train, y_train)
         test_accuracy = classifier.score(X_test, y_test)
         print('Accuracy for layer {}: {}'.format(name, test_accuracy))
 
