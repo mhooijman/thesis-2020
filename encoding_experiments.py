@@ -224,8 +224,13 @@ def main():
     results_full_model_common = do_gender_encoding_experiment_common_voice(sets=sets_to_use, 
                     activations_dir=activations_dir)
 
+    print(results_full_model_common)
+
     results_full_model_common = do_sentence_length_encoding_experiment_common_voice(sets=sets_to_use, 
                     activations_dir=activations_dir)
+
+    print(results_full_model_common)
+
 
     ### Gender encoding experiment ###
 
